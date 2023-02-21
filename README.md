@@ -3,11 +3,11 @@ Convert a SQL DDL to a GraphQL implementation with all relations.
 
 ## Licence
 
-By David Hardy and Onn Software:
+By David Hardy and [Onn Software](https://onn.software):
 
 The MIT License
 
-Copyright (c) 2023 David Hardy
+Copyright (c) 2023 David Hardy<br>
 Copyright (c) 2023 Onn Software
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
