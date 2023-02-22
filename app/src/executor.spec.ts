@@ -21,7 +21,7 @@ describe('Executor', () => {
       defPath: './table-definitions.json',
       tsFolder: 'test/ts',
       gqlFolder: 'test/gql',
-      overrideDest: true
+      override: true
     });
   });
   it('executes all phases when array is empty -- example', async () => {
@@ -38,7 +38,7 @@ describe('Executor', () => {
       defPath: './table-definitions.json',
       tsFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/ts',
       gqlFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/gql',
-      overrideDest: true,
+      override: true,
       sqlFactory: 'knex'
     });
   });

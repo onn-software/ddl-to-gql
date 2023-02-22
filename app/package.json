@@ -1,5 +1,5 @@
 {
-  "name": "@onn/ddl-to-gql",
+  "name": "@onn-software/ddl-to-gql",
   "version": "0.0.1",
   "author": "David Hardy @ Onn Software",
   "description": "Convert a SQL DDL to a GraphQL implementation with all relations.",
@@ -8,7 +8,14 @@
   },
   "homepage": "https://github.com/onn-software/ddl-to-gql#readme",
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "private": false,
+  "preferGlobal": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/onn-software/ddl-to-gql.git"
@@ -18,7 +25,9 @@
     "SQL",
     "DDL"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "tsc -p ."
+  },
   "devDependencies": {
     "@types/jest": "^29.4.0",
     "jest": "^29.4.3",

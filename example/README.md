@@ -20,7 +20,7 @@ All following commands are executed in the folder `./example`.
 Now that the environment is ready, let's generate code, and run the example.
 
 ```npm
-npx @onn/ddl-to-gql \
+npx @onn-software/ddl-to-gql \
     --ddlPath="./example.ddl" \
     --defPath="./table-definitions.json" \
     --tsFolder="src/gen/onn/ts" \

@@ -10,7 +10,7 @@ import { MainGenerator } from './main-generator/main-generator';
 const program = new Command();
 
 program
-  .name('@onn/ddl-to-gql')
+  .name('@onn-software/ddl-to-gql')
   .description('Convert a SQL DDL to a GraphQL implementation with all relations.')
   .version('0.0.1')
   .option('--defPath <text>', 'Path to interpreted ddl file.', './table-definitions.json')

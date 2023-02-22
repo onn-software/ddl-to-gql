@@ -4,7 +4,7 @@ Convert a SQL DDL to a GraphQL implementation with all relations.
 ## Code generation
 
 The _Data Description Language_ (DDL) is intended to be a SQL dialect independent language to describe how a database looks like.
-For the sake of [@onn/ddl-to-gql](https://www.npmjs.com/package/@onn/ddl-to-gql), we only care about the contents of `CREATE TABLE`
+For the sake of [@onn-software/ddl-to-gql](https://www.npmjs.com/package/@onn-software/ddl-to-gql), we only care about the contents of `CREATE TABLE`
 
 ```mysql
 CREATE TABLE `tableName`
@@ -20,7 +20,7 @@ Based on a valid DDL file a complete Graph is created, respecting the `FOREIGN K
 A complete GraphQL setup is generated.
 
 ```npm
-npx @onn/ddl-to-gql \
+npx @onn-software/ddl-to-gql \
     --ddlPath="./my.ddl" \
     --defPath="./table-definitions.json" \
     --tsFolder="src/gen/onn/ts" \
