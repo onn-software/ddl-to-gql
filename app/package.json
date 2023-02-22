@@ -18,13 +18,17 @@
     "SQL",
     "DDL"
   ],
-  "scripts": {
-    "install:app": "npm --prefix app install",
-    "install:example": "npm --prefix example install",
-    "postinstall": "npm run install:app && npm run install:example",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "scripts": {},
+  "peerDependencies": {
+    "knex": "^2.4.2",
+    "graphql": "^16.6.0"
   },
   "devDependencies": {
-    "prettier": "^2.8.4"
+    "@types/jest": "^29.4.0",
+    "jest": "^29.4.3",
+    "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.9.5"
   }
 }
