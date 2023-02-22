@@ -1,5 +1,5 @@
 # compiled output
-/dist
+/app/dist
 /tmp
 /out-tsc
 src/gql/gen/
