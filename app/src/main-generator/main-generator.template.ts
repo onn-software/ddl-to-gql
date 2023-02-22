@@ -1,4 +1,4 @@
-export const main = `import { allGqlResolvers, OnnResolverHooks } from './resolvers';
+export const main = `import {allGqlQueryResolvers, allGqlResolvers, OnnResolverHooks} from './resolvers';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
   parent: any;
@@ -20,7 +20,7 @@ export class OnnDdlToGql<GraphQLResolveInfo = any> {
     }
   }
 
-  getAllResolvers = () => allGqlResolvers;
-  getAllRootResolvers = () => [];
+  getAllTypeResolvers = () => allGqlResolvers;
+  getAllQueryResolvers = () => allGqlQueryResolvers;
 }
 `

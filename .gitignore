@@ -43,3 +43,9 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+# Gen output
+app/table-definitions.json
+app/temp
+app/test
+example/src/gen

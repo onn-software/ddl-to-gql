@@ -16,6 +16,12 @@ export const __GQL_TYPE___Resolver = {
 };
 `;
 
+export const typeResolvers = `
+export const allGqlTypeResolvers = {
+    __RESOLVER_ENTRIES__
+};
+`
+
 export const getResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: any, info: any) => {
     const b = OnnResolverHooks.before<model.__FOREIGN_SQL_TYPE__>({ parent, args, context, info });
@@ -40,3 +46,11 @@ export const paginatedResolverBlock = `
     return OnnResolverHooks.after(result, {parent, args, context, info}) as any;
   },
 `;
+
+export const queryResolverEntry = `  __TABLE_NAME__: (_: any, args: any) => new repo.__SQL_TYPE___Repo().getPaginatedBy([], args.paginate) as any,`
+
+export const queryResolvers = `
+export const allGqlQueryResolvers = {
+__RESOLVER_ENTRIES__
+};
+`

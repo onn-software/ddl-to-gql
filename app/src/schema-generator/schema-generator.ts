@@ -5,7 +5,8 @@ import { baseGql, GqlTypeMap } from './schema-generator.templates';
 export class SchemaGenerator {
   execute(tableDefs: TableDef[]): string {
     const gqlSchema = tableDefs.map((table) => this.generateGqlSchema(table));
-    return baseGql + gqlSchema.join('\n');
+    const gqlQueries = this.generateGqlSchemaQueries(tableDefs);
+    return baseGql + gqlSchema.join('\n') + gqlQueries.join('\n');
   }
 
   generateGqlSchema(tableDef: TableDef): string {
@@ -46,6 +47,19 @@ export class SchemaGenerator {
     schema.push('}');
     schema.push('');
 
+
     return schema.join('\n');
+  }
+
+  private generateGqlSchemaQueries(tableDefs: TableDef[]) {
+    const queries = ['', 'extend type Query {'];
+    tableDefs.forEach(table => {
+      queries.push(`  ${table.tableName}(paginate:Paginate): Paginated${Globals.getGqlName(table.tableName)}`);
+    })
+
+    queries.push('}');
+    queries.push('');
+
+    return queries;
   }
 }

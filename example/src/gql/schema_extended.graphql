@@ -1,3 +1,0 @@
-extend type Query {
-  customers(paginate:Paginate): PaginatedGql_customers
-}
