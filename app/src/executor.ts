@@ -16,6 +16,7 @@ export interface ExecutorOptions {
   tsPrefix?: string;
   gqlPrefix?: string;
   gqlFolder?: string;
+  sqlFactory?: string;
   overrideDest?: boolean;
 }
 
@@ -56,7 +57,7 @@ export class Executor {
       fs.writeFileSync(`${options.gqlFolder}/onn-ddl-to-gql.graphql`, res);
     }
     if (options.phases.length===0 || options.phases.indexOf('main') >= 0) {
-      const res = this.mainGenerator.execute();
+      const res = this.mainGenerator.execute(options.sqlFactory);
       fs.writeFileSync(`${options.tsFolder}/index.ts`, res);
     }
   }

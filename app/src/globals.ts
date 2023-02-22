@@ -1,4 +1,4 @@
-import {TableRelationDef} from './model';
+import {QueryBuilder, TableRelationDef} from './model';
 
 export class Globals {
    static TS_PREFIX = 'Onn'
