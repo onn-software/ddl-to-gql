@@ -20,8 +20,7 @@
   ],
   "scripts": {},
   "peerDependencies": {
-    "knex": "^2.4.2",
-    "graphql": "^16.6.0"
+    "knex": "^2.4.2"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",

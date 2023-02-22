@@ -1,27 +1,31 @@
-import {associateBy} from '../util';
-import {TableColDef, TableDef} from '../model';
-import {reservedNames, typeMap} from './ddl-interpreter.templates';
+import { associateBy } from '../util';
+import { TableColDef, TableDef } from '../model';
+import { reservedNames, typeMap } from './ddl-interpreter.templates';
 
 export class DdlInterpreter {
   execute(ddl: string) {
     const splittedSchema = ddl.split(/create table /i).slice(1);
 
-    return this.createTwoWayRelations(splittedSchema.map((part) => {
-      const {tableName, lines} = this.extractTableContents(part);
-      const singleLines = this.ensureSingleLineStatements(lines);
-      const {fields, meta} = this.splitIntoFieldsAndMeta(singleLines);
-      const columns = this.parseToColumns(fields);
-      const {primaryKeys, relations} = this.parseMeta(tableName, fields, meta);
+    return this.createTwoWayRelations(
+      splittedSchema.map((part) => {
+        const { tableName, lines } = this.extractTableContents(part);
+        const singleLines = this.ensureSingleLineStatements(lines);
+        const { fields, meta } = this.splitIntoFieldsAndMeta(singleLines);
+        const columns = this.parseToColumns(fields);
+        const { primaryKey, relations } = this.parseMeta(tableName, fields, meta);
 
-      const columnMap = associateBy(columns, (f) => f.key);
-      primaryKeys.forEach((pk) => (columnMap[pk].unique = true));
+        const columnMap = associateBy(columns, (f) => f.key);
+        if (primaryKey) {
+          columnMap[primaryKey].unique = true;
+        }
 
-      return {
-        tableName,
-        columns,
-        relations,
-      } as TableDef;
-    }));
+        return {
+          tableName,
+          columns,
+          relations,
+        } as TableDef;
+      })
+    );
   }
 
   private parseToColumns(fields: string[]): TableColDef[] {
@@ -37,8 +41,8 @@ export class DdlInterpreter {
           sqlType,
           sqlKey: key.startsWith('_') ? sqlKey : undefined,
           key,
-          unique: (upperField.indexOf('PRIMARY KEY') >= 0) || (upperField.indexOf('UNIQUE') >= 0),
-          type: typeMap[sqlType.toUpperCase()] ?? 'string',
+          unique: upperField.indexOf('PRIMARY KEY') >= 0 || upperField.indexOf('UNIQUE') >= 0,
+          type: typeMap[sqlType.split('(')[0].toUpperCase()] ?? 'string',
           nullable: upperField.indexOf('NOT NULL') < 0,
         };
         return res;
@@ -58,7 +62,8 @@ export class DdlInterpreter {
       .substring(0, part.indexOf(' '))
       .replaceAll('\r', '')
       .split('\n')[0]
-      .replaceAll('`', '').replaceAll('.', '__');
+      .replaceAll('`', '')
+      .replaceAll('.', '__');
     let count = 1;
     let index = part.indexOf('(') + 1;
     const maxIndex = part.length;
@@ -107,15 +112,18 @@ export class DdlInterpreter {
   }
 
   private parseMeta(tableName: string, fields: string[], meta: string[]) {
-    const primaryKeys: string[] = [];
+    let primaryKey = '';
     const relations: any[] = [];
     meta
       .map((met) => met.trim())
       .forEach((met) => {
         const upperMeta = met.trim();
         if (upperMeta.startsWith('PRIMARY KEY (')) {
-          const keys = met.substring(met.indexOf('(') + 1, met.indexOf(')'));
-          primaryKeys.push(...keys.split(',').map((k) => this.keyFromSqlKey(k.trim())));
+          const keyJoined = met.substring(met.indexOf('(') + 1, met.indexOf(')'));
+          const keys = keyJoined.split(',').map((k) => this.keyFromSqlKey(k.trim()));
+          if (keys.length === 1) {
+            primaryKey = keys[0];
+          }
           return;
         }
 
@@ -146,7 +154,7 @@ export class DdlInterpreter {
         }
       });
 
-    return { primaryKeys, relations };
+    return { primaryKey, relations };
   }
 
   private createTwoWayRelations(tables: TableDef[]): TableDef[] {

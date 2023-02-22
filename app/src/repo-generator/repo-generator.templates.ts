@@ -1,5 +1,4 @@
-export const baseRepo = `
-import { Knex } from 'knex';
+export const baseRepo = `import { Knex } from 'knex';
 import * as model from './model';
 
 export abstract class SQL_Base_Repo<SQL_TYPE extends {}> {
@@ -12,13 +11,14 @@ export abstract class SQL_Base_Repo<SQL_TYPE extends {}> {
 
   paginate = async (
     qb: Knex.QueryBuilder<SQL_TYPE>,
+    fields: string | string[] = '*',
     paginate: model.Paginate
   ): Promise<model.Paginated<SQL_TYPE>> => {
     const count = await qb.clone().count();
     const totalEntries = count[0]['count(*)'] as number;
     
     const noLimit = paginate.pageSize <= 0;
-    const data = await (noLimit ? qb : qb.offset(paginate.pageIndex * paginate.pageSize).limit(paginate.pageSize));
+    const data = await (noLimit ? qb.select(fields) : qb.select(fields).offset(paginate.pageIndex * paginate.pageSize).limit(paginate.pageSize));
 
     return {
       pageIndex: noLimit ? 0 : paginate.pageIndex,
@@ -30,42 +30,28 @@ export abstract class SQL_Base_Repo<SQL_TYPE extends {}> {
 }
 `;
 
-export const byGetterBlock = `
-  async get___SQL_TYPE____by____SAFE_FIELD_NAME__(
-    __SAFE_FIELD_NAME__: string,
-    fields: string | string[] = '*'
-  ): Promise<model.__SQL_TYPE__> {
-    const res = await this.builder().select(fields).where('__FIELD_NAME__', __SAFE_FIELD_NAME__);
-    return res[0]; // model.__SQL_TYPE__
-  }  
-`;
-
-export const byPaginatedGetterBlock = `
-  async getPaginated___FOREIGN_SQL_TYPE____by____SAFE_FOREIGN_FIELD_NAME__(
-    __SAFE_FOREIGN_FIELD_NAME__: string,
-    paginate?: model.Paginate | null,
-    fields: string | string[] = '*'
-  ): Promise<model.Paginated<model.__FOREIGN_SQL_TYPE__>> {
-    return await new __FOREIGN_SQL_TYPE___Repo().getPaginated(paginate, fields, (qb) => qb.where('__FOREIGN_FIELD_NAME__', __SAFE_FOREIGN_FIELD_NAME__));
-  }  
-`;
-
-export const repoTemplate = `
-export class __SQL_TYPE___Repo extends SQL_Base_Repo<model.__SQL_TYPE__> {
+export const repoTemplate = `export class __SQL_TYPE___Repo extends SQL_Base_Repo<model.__SQL_TYPE__> {
   constructor() {
     super('__SQL_TABLE__');
-  }  
-  __FIELD_GETTER_BLOCK__
+  }
   
-  __PAGINATED_FIELD_GETTER_BLOCK__
-  
-  async getPaginated(
+  async getBy(
+    key: (__UNIQUE_FIELDS__),
+    value: any,
+    fields: string | string[] = '*'
+  ): Promise<model.__SQL_TYPE__> {
+    const res = await this.builder().select(fields).where(key, value);
+    return res[0];
+  }
+
+  async getPaginatedBy(
+    clauses: { key: (__NON_UNIQUE_FIELDS__) ; values: any[] }[],
     paginate?: model.Paginate | null,
     fields: string | string[] = '*',
     builder: (qb: Knex.QueryBuilder) => Knex.QueryBuilder = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {
-    const queryBuilder = builder(this.builder().select(fields));
-    return this.paginate(queryBuilder, paginate ?? { pageIndex: -1, pageSize: -1 });
+    const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder())
+    return this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 });
   }
 }
 

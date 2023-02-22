@@ -5,14 +5,17 @@ import {ResolverGenerator} from './resolver-generator/resolver-generator';
 import fs from 'fs';
 import {TableDef} from './model';
 import {Globals} from './globals';
+import {MainGenerator} from './main-generator/main-generator';
+import {SchemaGenerator} from './schema-generator/schema-generator';
 
 export interface ExecutorOptions {
-  phases: ('ddl' | 'model' | 'repo' | 'resolver')[];
-  tDefPath: string;
+  phases: ('ddl' | 'model' | 'repo' | 'resolver' | 'schema' | 'main')[];
+  defPath: string;
   ddlPath?: string;
-  destFolder?: string;
+  tsFolder?: string;
   tsPrefix?: string;
   gqlPrefix?: string;
+  gqlFolder?: string;
   overrideDest?: boolean;
 }
 
@@ -21,30 +24,40 @@ export class Executor {
     private ddlInterpreter: DdlInterpreter,
     private modelGenerator: ModelGenerator,
     private repoGenerator: RepoGenerator,
-    private resolverGenerator: ResolverGenerator
+    private resolverGenerator: ResolverGenerator,
+    private schemaGenerator: SchemaGenerator,
+    private mainGenerator: MainGenerator
   ) {}
 
   execute(options: ExecutorOptions) {
     this.assertOptions(options);
 
-    if (options.phases.indexOf('ddl') >= 0) {
-      this.executeDdl(options.ddlPath!, options.tDefPath);
+    if (options.phases.length===0 || options.phases.indexOf('ddl') >= 0) {
+      this.executeDdl(options.ddlPath!, options.defPath);
     }
 
-    const tableDefsRaw = fs.readFileSync(options.tDefPath, 'utf-8');
+    const tableDefsRaw = fs.readFileSync(options.defPath, 'utf-8');
     const tableDefs: TableDef[] = JSON.parse(tableDefsRaw);
 
-    if (options.phases.indexOf('model') >= 0) {
+    if (options.phases.length===0 || options.phases.indexOf('model') >= 0) {
       const res = this.modelGenerator.execute(tableDefs);
-      fs.writeFileSync(`${options.destFolder}/model.ts`, res);
+      fs.writeFileSync(`${options.tsFolder}/model.ts`, res);
     }
-    if (options.phases.indexOf('repo') >= 0) {
+    if (options.phases.length===0 || options.phases.indexOf('repo') >= 0) {
       const res = this.repoGenerator.execute(tableDefs);
-      fs.writeFileSync(`${options.destFolder}/repos.ts`, res);
+      fs.writeFileSync(`${options.tsFolder}/repos.ts`, res);
     }
-    if (options.phases.indexOf('resolver') >= 0) {
+    if (options.phases.length===0 || options.phases.indexOf('resolver') >= 0) {
       const res = this.resolverGenerator.execute(tableDefs);
-      fs.writeFileSync(`${options.destFolder}/resolvers.ts`, res);
+      fs.writeFileSync(`${options.tsFolder}/resolvers.ts`, res);
+    }
+    if (options.phases.length===0 || options.phases.indexOf('schema') >= 0) {
+      const res = this.schemaGenerator.execute(tableDefs);
+      fs.writeFileSync(`${options.gqlFolder}/onn-ddl-to-gql.graphql`, res);
+    }
+    if (options.phases.length===0 || options.phases.indexOf('main') >= 0) {
+      const res = this.mainGenerator.execute();
+      fs.writeFileSync(`${options.tsFolder}/index.ts`, res);
     }
   }
 
@@ -56,18 +69,37 @@ export class Executor {
     if (options.phases.length === 0 ||
         options.phases.indexOf('model') >= 0 ||
         options.phases.indexOf('repo') >= 0 ||
-        options.phases.indexOf('resolver') >= 0) {
-      if (!options.destFolder) {
-        throw Error('The option destFolder is mandatory when code generation is enabled');
+        options.phases.indexOf('resolver') >= 0 ||
+        options.phases.indexOf('main') >= 0) {
+      if (!options.tsFolder) {
+        throw Error('The option destFolder is mandatory when typescript generation is enabled');
       }else {
-        if(!fs.existsSync(options.destFolder)) {
-          fs.mkdirSync(options.destFolder)
-        }else if(fs.readdirSync(options.destFolder).length >0) {
+        if(!fs.existsSync(options.tsFolder)) {
+          fs.mkdirSync(options.tsFolder, {recursive: true})
+        }else if(fs.readdirSync(options.tsFolder).length >0) {
           if(options.overrideDest){
-            fs.rmdirSync(options.destFolder, {recursive: true})
-            fs.mkdirSync(options.destFolder)
+            fs.rmdirSync(options.tsFolder, {recursive: true})
+            fs.mkdirSync(options.tsFolder, {recursive: true})
           } else {
             throw Error('The destFolder is not empty. Use --override to automatically clear the destFolder.');
+          }
+        }
+      }
+    }
+
+    if (options.phases.length === 0 ||
+        options.phases.indexOf('schema') >= 0) {
+      if (!options.gqlFolder) {
+        throw Error('The option gqlFolder is mandatory when GQL generation is enabled');
+      }else {
+        if(!fs.existsSync(options.gqlFolder)) {
+          fs.mkdirSync(options.gqlFolder)
+        }else if(fs.readdirSync(options.gqlFolder).length >0) {
+          if(options.overrideDest){
+            fs.rmdirSync(options.gqlFolder, {recursive: true})
+            fs.mkdirSync(options.gqlFolder)
+          } else {
+            throw Error('The gqlFolder is not empty. Use --override to automatically clear the gqlFolder.');
           }
         }
       }
