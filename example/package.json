@@ -22,6 +22,7 @@
     "docker:up": "docker compose up",
     "dev": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn src/main.ts",
     "start": "ts-node src/main.ts",
+    "onn": "@onn-software/ddl-to-gql",
     "codegen:sql": "ts-node sql-codegen.ts",
     "codegen:gql": "graphql-codegen --config server-codegen.ts",
     "codegen": "npm run codegen:sql && npm run codegen:gql"

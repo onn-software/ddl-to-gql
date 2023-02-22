@@ -21,11 +21,11 @@ Now that the environment is ready, let's generate code, and run the example.
 
 ```npm
 npx @onn-software/ddl-to-gql \
-    --ddlPath="./example.ddl" \
-    --defPath="./table-definitions.json" \
-    --tsFolder="src/gen/onn/ts" \
-    --gqlFolder="src/gen/onn/gql" \
-    --sqlFactory="knex"
+    --ddlPath ./example.ddl \
+    --defPath ./table-definitions.json \
+    --tsFolder src/gen/onn/ts \
+    --gqlFolder src/gen/onn/gql \
+    --sqlFactory knex
 ```
 
 Now start the app with `npm run dev`, and go to http://localhost:4000/graphql.

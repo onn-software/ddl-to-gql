@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from 'commander';
 import { Executor } from './executor';
 import { DdlInterpreter } from './ddl-interpreter/ddl-interpreter';
