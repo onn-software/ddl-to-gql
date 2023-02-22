@@ -17,7 +17,7 @@ export interface ExecutorOptions {
   gqlPrefix?: string;
   gqlFolder?: string;
   sqlFactory?: string;
-  overrideDest?: boolean;
+  override?: boolean;
 }
 
 export class Executor {
@@ -31,9 +31,11 @@ export class Executor {
   ) {}
 
   execute(options: ExecutorOptions) {
-    this.assertOptions(options);
+    console.log(`Options`, options);
 
+    this.assertOptions(options);
     if (options.phases.length===0 || options.phases.indexOf('ddl') >= 0) {
+      console.log(`Phase: ddl`);
       this.executeDdl(options.ddlPath!, options.defPath);
     }
 
@@ -41,25 +43,31 @@ export class Executor {
     const tableDefs: TableDef[] = JSON.parse(tableDefsRaw);
 
     if (options.phases.length===0 || options.phases.indexOf('model') >= 0) {
+      console.log(`Phase: model`);
       const res = this.modelGenerator.execute(tableDefs);
       fs.writeFileSync(`${options.tsFolder}/model.ts`, res);
     }
     if (options.phases.length===0 || options.phases.indexOf('repo') >= 0) {
+      console.log(`Phase: repo`);
       const res = this.repoGenerator.execute(tableDefs);
       fs.writeFileSync(`${options.tsFolder}/repos.ts`, res);
     }
     if (options.phases.length===0 || options.phases.indexOf('resolver') >= 0) {
+      console.log(`Phase: resolver`);
       const res = this.resolverGenerator.execute(tableDefs);
       fs.writeFileSync(`${options.tsFolder}/resolvers.ts`, res);
     }
     if (options.phases.length===0 || options.phases.indexOf('schema') >= 0) {
+      console.log(`Phase: schema`);
       const res = this.schemaGenerator.execute(tableDefs);
       fs.writeFileSync(`${options.gqlFolder}/onn-ddl-to-gql.graphql`, res);
     }
     if (options.phases.length===0 || options.phases.indexOf('main') >= 0) {
+      console.log(`Phase: main`);
       const res = this.mainGenerator.execute(options.sqlFactory);
       fs.writeFileSync(`${options.tsFolder}/index.ts`, res);
     }
+    console.log(`Success`);
   }
 
   private assertOptions(options: ExecutorOptions) {
@@ -78,8 +86,8 @@ export class Executor {
         if(!fs.existsSync(options.tsFolder)) {
           fs.mkdirSync(options.tsFolder, {recursive: true})
         }else if(fs.readdirSync(options.tsFolder).length >0) {
-          if(options.overrideDest){
-            fs.rmdirSync(options.tsFolder, {recursive: true})
+          if(options.override){
+            fs.rmSync(options.tsFolder, {recursive: true})
             fs.mkdirSync(options.tsFolder, {recursive: true})
           } else {
             throw Error('The destFolder is not empty. Use --override to automatically clear the destFolder.');
@@ -96,8 +104,8 @@ export class Executor {
         if(!fs.existsSync(options.gqlFolder)) {
           fs.mkdirSync(options.gqlFolder)
         }else if(fs.readdirSync(options.gqlFolder).length >0) {
-          if(options.overrideDest){
-            fs.rmdirSync(options.gqlFolder, {recursive: true})
+          if(options.override){
+            fs.rmSync(options.gqlFolder, {recursive: true})
             fs.mkdirSync(options.gqlFolder)
           } else {
             throw Error('The gqlFolder is not empty. Use --override to automatically clear the gqlFolder.');
