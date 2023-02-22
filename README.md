@@ -21,11 +21,11 @@ A complete GraphQL setup is generated.
 
 ```npm
 npx @onn-software/ddl-to-gql \
-    --ddlPath="./my.ddl" \
-    --defPath="./table-definitions.json" \
-    --tsFolder="src/gen/onn/ts" \
-    --gqlFolder="src/gen/onn/gql" \
-    --sqlFactory="knex"
+    --ddlPath ./example.ddl \
+    --defPath ./table-definitions.json \
+    --tsFolder src/gen/onn/ts \
+    --gqlFolder src/gen/onn/gql \
+    --sqlFactory knex
 ```
 
 ## Integrate in Yoga/Apollo GraphQL
