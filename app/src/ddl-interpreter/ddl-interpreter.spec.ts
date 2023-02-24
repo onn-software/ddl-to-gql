@@ -6,7 +6,8 @@ describe('DdlInterpreter', () => {
         const ddl = fs.readFileSync('./src/ddl-interpreter/__stubs__/interpret-test.ddl', 'utf-8');
         const tableDefs = new DdlInterpreter().execute(ddl);
 
-        fs.writeFileSync(`./test/interpreted-ddl.json`, JSON.stringify(tableDefs, undefined, 2));
+        fs.mkdirSync('./test/spec', {recursive: true});
+        fs.writeFileSync(`./test/spec/interpreted-ddl.json`, JSON.stringify(tableDefs, undefined, 2));
     });
 
 });

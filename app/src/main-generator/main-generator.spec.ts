@@ -6,6 +6,6 @@ describe('MainGenerator', () => {
   it('generates repo', async () => {
     const repo = new MainGenerator().execute('knex');
 
-    fs.writeFileSync(`./test/main.ts`, repo);
+    fs.writeFileSync(`./test/spec/main.ts`, repo);
   });
 });

@@ -18,9 +18,9 @@ describe('Executor', () => {
     ).execute({
       phases: [],
       ddlPath: './src/ddl-interpreter/__stubs__/interpret-test.ddl',
-      defPath: './table-definitions.json',
-      tsFolder: 'test/ts',
-      gqlFolder: 'test/gql',
+      defPath: './test/executor/table-definitions.json',
+      tsFolder: 'test/executor/ts',
+      gqlFolder: 'test/executor/gql',
       override: true
     });
   });
@@ -34,7 +34,7 @@ describe('Executor', () => {
       new MainGenerator()
     ).execute({
       phases: [],
-      ddlPath: './src/ddl-interpreter/__stubs__/interpret-test.ddl',
+      ddlPath: '/Users/hardy/Development/Onn/ddl-to-gql/example/example.ddl',
       defPath: './table-definitions.json',
       tsFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/ts',
       gqlFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/gql',

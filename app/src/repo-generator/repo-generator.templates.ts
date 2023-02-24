@@ -42,8 +42,9 @@ export const repoTemplate = `export class __SQL_TYPE___Repo extends OnnBaseRepo<
     value: any,
     fields: string | string[] = '*'
   ): Promise<model.__SQL_TYPE__> {
-    const res = await this.builder().select(fields).where(key, value).execute();
-    return res[0];
+    const [res] = await this.builder().select(fields).where(key, value).execute() as any;
+__MAPPERS__
+    return res;
   }
 
   async getPaginatedBy(
@@ -53,7 +54,9 @@ export const repoTemplate = `export class __SQL_TYPE___Repo extends OnnBaseRepo<
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {
     const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder())
-    return this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 });
+    const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 });
+__PAGINATED_MAPPERS__
+    return paginated;
   }
 }
 
