@@ -3,8 +3,8 @@ import * as model from './model';
 import * as repo from './repos';
 
 export class OnnResolverHooks {
-  static before: <T>(gqlParams: any) => T | null = () => null;
-  static after: <T>(result: T, gqlParams: any) => T = (result) => result;
+  static before: <T>(resolverName:string, gqlParams: any) => { value: T | null, gqlParams: any } | null = () => null;
+  static after: <T>(resolverName:string, result: T, gqlParams: any) => T = (_, result) => result;
 }
 `;
 
@@ -24,26 +24,26 @@ export const allGqlTypeResolvers = {
 
 export const getResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: any, info: any) => {
-    const b = OnnResolverHooks.before<model.__FOREIGN_SQL_TYPE__>({ parent, args, context, info });
-    if (b) {
-      return b;
-    }
+    let gqlParams = { parent, args, context, info };
+    const b = OnnResolverHooks.before<model.__FOREIGN_SQL_TYPE__>("__RELATION_NAME__", gqlParams);
+    if (b?.value) { return b.value; }
+    if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getBy("__SAFE_FOREIGN_FIELD_NAME__", parent["__SAFE_FIELD_NAME__"]);
-    return OnnResolverHooks.after(result, {parent, args, context, info}) as any;
+    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getBy("__SAFE_FOREIGN_FIELD_NAME__", gqlParams.parent["__SAFE_FIELD_NAME__"]);
+    return OnnResolverHooks.after("__RELATION_NAME__", result, gqlParams) as any;
   },
 `;
 
 
 export const paginatedResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: any, info: any) => {
-    const b = OnnResolverHooks.before<model.Paginated<model.__FOREIGN_SQL_TYPE__>>({ parent, args, context, info });
-    if (b) {
-      return b;
-    }
+    let gqlParams = { parent, args, context, info };
+    const b = OnnResolverHooks.before<model.Paginated<model.__FOREIGN_SQL_TYPE__>>("__RELATION_NAME__", gqlParams);
+    if (b?.value) { return b.value; }
+    if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy([{key: "__SAFE_FOREIGN_FIELD_NAME__", values: [parent["__SAFE_FIELD_NAME__"]]}], args.paginate);
-    return OnnResolverHooks.after(result, {parent, args, context, info}) as any;
+    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy([{key: "__SAFE_FOREIGN_FIELD_NAME__", values: [gqlParams.parent["__SAFE_FIELD_NAME__"]]}], gqlParams.args.paginate);
+    return OnnResolverHooks.after("__RELATION_NAME__", result, gqlParams) as any;
   },
 `;
 

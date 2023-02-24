@@ -9,8 +9,8 @@ export interface GqlParams<GraphQLResolveInfo = any> {
   info: GraphQLResolveInfo;
 }
 
-export type OnnBefore = <T>(gqlParams: GqlParams) => T | null;
-export type OnnAfter = <T>(result: T, gqlParams: GqlParams) => T;
+export type OnnBefore = <T>(resolverName: string, gqlParams: GqlParams) => { value: T | null, gqlParams: GqlParams } | null;
+export type OnnAfter = <T>(resolverName: string, result: T, gqlParams: GqlParams) => T;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
   constructor(queryBuilderFactory: <T extends {}>() => QueryBuilder<T>, options?: { onnBefore?: OnnBefore; onnAfter?: OnnAfter }) {
