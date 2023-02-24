@@ -7,6 +7,6 @@ describe('ModelGenerator', () => {
     const tableDefs: TableDef[] =  require('../../temp/interpreted-ddl.json');
     const model = new ModelGenerator().execute(tableDefs);
 
-    fs.writeFileSync(`./temp/model.ts`, model);
+    fs.writeFileSync(`./test/model.ts`, model);
   });
 });

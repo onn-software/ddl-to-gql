@@ -125,6 +125,7 @@ CREATE TABLE `productlines`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = latin1;
 
+create table uglyButLegal(`some.weird.name` int, `some-other.weird*name#thats@also_valid` decimal(10,20), `please.never..doThis` bool)
 
 drop table if exists products;
 create table products

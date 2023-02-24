@@ -8,6 +8,6 @@ describe('SchemaGenerator', () => {
     const tableDefs: TableDef[] = JSON.parse(tableDefsRaw);
     const repo = new SchemaGenerator().execute(tableDefs);
 
-    fs.writeFileSync(`./temp/schema.graphql`, repo);
+    fs.writeFileSync(`./test/schema.graphql`, repo);
   });
 });

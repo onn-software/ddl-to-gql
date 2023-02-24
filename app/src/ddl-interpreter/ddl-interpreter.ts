@@ -9,7 +9,8 @@ export class DdlInterpreter {
     return this.createTwoWayRelations(
       splittedSchema.map((part) => {
         const { tableName, lines } = this.extractTableContents(part);
-        const singleLines = this.ensureSingleLineStatements(lines);
+        const singleLinesPartial = this.joinMultilineStatementsIntoSingleLine(lines);
+        const singleLines = this.splitSingleLineMutipleStatments(singleLinesPartial);
         const { fields, meta } = this.splitIntoFieldsAndMeta(singleLines);
         const columns = this.parseToColumns(fields);
         const { primaryKey, relations } = this.parseMeta(tableName, fields, meta);
@@ -51,8 +52,11 @@ export class DdlInterpreter {
 
   private keyFromSqlKey(sqlKey: string) {
     let key = sqlKey.replaceAll('`', '');
-    if (reservedNames.indexOf(key.toUpperCase()) >= 0 || !/^[a-zA-Z]/.test(key)) {
-      key = '_' + key;
+    if (reservedNames.indexOf(key.toUpperCase()) >= 0 || // reservedName
+        !/^[a-zA-Z]/.test(key) || // starts with non-letter
+        /[^a-zA-Z0-9]/.test(key) // contains special chars
+    ) {
+      key = '_' + key.replaceAll(/[^a-zA-Z0-9]/g, '_');
     }
     return key;
   }
@@ -60,10 +64,12 @@ export class DdlInterpreter {
   private extractTableContents(part: string): { tableName: string; lines: string[] } {
     const tableName = part
       .substring(0, part.indexOf(' '))
+      .substring(0, part.indexOf('('))
       .replaceAll('\r', '')
       .split('\n')[0]
       .replaceAll('`', '')
       .replaceAll('.', '__');
+
     let count = 1;
     let index = part.indexOf('(') + 1;
     const maxIndex = part.length;
@@ -73,15 +79,46 @@ export class DdlInterpreter {
       index++;
     }
 
-    const lines = part.substring(part.indexOf('('), index).replaceAll('\r', '').split('\n');
+    const lines = part
+      .substring(part.indexOf('(') + 1, index - 1)
+      .replaceAll('\r', '')
+      .split('\n')
+      .filter((line) => line.trim().length > 0);
 
     return { tableName, lines } as const;
   }
 
-  private ensureSingleLineStatements(lines: string[]): string[] {
+  private splitSingleLineMutipleStatments(lines: string[]): string[] {
+    const res: string[] = [];
+
+    let braceCount = 0;
+    lines.forEach((line) => {
+      if (line.indexOf(',') < 0) {
+        res.push(line);
+      } else {
+        let builder = '';
+        for (let i = 0; i < line.length; i++) {
+          if(line[i] === '(') braceCount++;
+          if(line[i] === ')') braceCount--;
+          if(braceCount === 0 && line[i] === ','){
+            res.push(builder.trim());
+            builder = '';
+          }
+          else {
+            builder = builder+line[i];
+          }
+        }
+        res.push(builder.trim());
+      }
+    });
+
+    return res;
+  }
+
+  private joinMultilineStatementsIntoSingleLine(lines: string[]): string[] {
     const singleLines: string[] = [];
     let currentLine = '';
-    lines.slice(1, lines.length - 1).forEach((l) => {
+    lines.forEach((l) => {
       const line = l.trim();
       currentLine = `${currentLine}${line}`;
       if (l.endsWith(',')) {
@@ -117,7 +154,7 @@ export class DdlInterpreter {
     meta
       .map((met) => met.trim())
       .forEach((met) => {
-        const upperMeta = met.trim();
+        const upperMeta = met.toUpperCase();
         if (upperMeta.startsWith('PRIMARY KEY (')) {
           const keyJoined = met.substring(met.indexOf('(') + 1, met.indexOf(')'));
           const keys = keyJoined.split(',').map((k) => this.keyFromSqlKey(k.trim()));

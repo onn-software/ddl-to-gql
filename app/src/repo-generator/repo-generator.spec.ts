@@ -7,6 +7,6 @@ describe('RepoGenerator', () => {
     const tableDefs: TableDef[] =  require('../../temp/interpreted-ddl.json');
     const repo = new RepoGenerator().execute(tableDefs);
 
-    fs.writeFileSync(`./temp/repos.ts`, repo);
+    fs.writeFileSync(`./test/repos.ts`, repo);
   });
 });

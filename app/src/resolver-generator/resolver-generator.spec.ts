@@ -8,6 +8,6 @@ describe('ResolverGenerator', () => {
     const tableDefs: TableDef[] = JSON.parse(tableDefsRaw);
     const repo = new ResolverGenerator().execute(tableDefs);
 
-    fs.writeFileSync(`./temp/resolvers.ts`, repo);
+    fs.writeFileSync(`./test/resolvers.ts`, repo);
   });
 });
