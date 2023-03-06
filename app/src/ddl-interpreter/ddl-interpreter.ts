@@ -1,12 +1,12 @@
 import { associateBy } from '../util';
-import { TableColDef, TableDef } from '../model';
+import { TableColDef, TableDef, TableRelationDef } from '../model';
 import { reservedNames, typeMap } from './ddl-interpreter.templates';
 
 export class DdlInterpreter {
-  execute(ddl: string) {
+  execute(ddl: string): TableDef[] {
     const splittedSchema = ddl.split(/create table /i).slice(1);
 
-    return this.createTwoWayRelations(
+    const tableDefs = this.createTwoWayRelations(
       splittedSchema.map((part) => {
         const { tableName, lines } = this.extractTableContents(part);
         const singleLinesPartial = this.joinMultilineStatementsIntoSingleLine(lines);
@@ -27,6 +27,8 @@ export class DdlInterpreter {
         } as TableDef;
       })
     );
+    tableDefs.sort((l, r) => l.tableName.localeCompare(r.tableName));
+    return tableDefs;
   }
 
   private parseToColumns(fields: string[]): TableColDef[] {
@@ -52,9 +54,10 @@ export class DdlInterpreter {
 
   private keyFromSqlKey(sqlKey: string) {
     let key = sqlKey.replaceAll('`', '');
-    if (reservedNames.indexOf(key.toUpperCase()) >= 0 || // reservedName
-        !/^[a-zA-Z]/.test(key) || // starts with non-letter
-        /[^a-zA-Z0-9]/.test(key) // contains special chars
+    if (
+      reservedNames.indexOf(key.toUpperCase()) >= 0 || // reservedName
+      !/^[a-zA-Z]/.test(key) || // starts with non-letter
+      /[^a-zA-Z0-9]/.test(key) // contains special chars
     ) {
       key = '_' + key.replaceAll(/[^a-zA-Z0-9]/g, '_');
     }
@@ -98,14 +101,13 @@ export class DdlInterpreter {
       } else {
         let builder = '';
         for (let i = 0; i < line.length; i++) {
-          if(line[i] === '(') braceCount++;
-          if(line[i] === ')') braceCount--;
-          if(braceCount === 0 && line[i] === ','){
+          if (line[i] === '(') braceCount++;
+          if (line[i] === ')') braceCount--;
+          if (braceCount === 0 && line[i] === ',') {
             res.push(builder.trim());
             builder = '';
-          }
-          else {
-            builder = builder+line[i];
+          } else {
+            builder = builder + line[i];
           }
         }
         res.push(builder.trim());
@@ -150,7 +152,7 @@ export class DdlInterpreter {
 
   private parseMeta(tableName: string, fields: string[], meta: string[]) {
     let primaryKey = '';
-    const relations: any[] = [];
+    const relations: TableRelationDef[] = [];
     meta
       .map((met) => met.trim())
       .forEach((met) => {
@@ -186,6 +188,9 @@ export class DdlInterpreter {
             from: { table: tableName, key: myKey },
             to: { table: foreignName.replaceAll('`', '').replaceAll('.', '__'), key: foreignKey },
             many: false,
+            enabled: true,
+            type: 'foreignKey',
+            nullable: false,
           });
           return;
         }
@@ -200,7 +205,14 @@ export class DdlInterpreter {
 
     tables.forEach((table) => {
       table.relations.forEach((rel) => {
-        recordTables[rel.to.table].relations.push({ to: rel.from, from: rel.to, many: true });
+        recordTables[rel.to.table].relations.push({
+          to: rel.from,
+          from: rel.to,
+          many: true,
+          enabled: true,
+          type: 'foreignKey',
+          nullable: false,
+        });
       });
     });
 

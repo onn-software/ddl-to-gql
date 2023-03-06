@@ -18,6 +18,9 @@ export interface TableRelationDef {
         key: string;
     };
     many: boolean;
+    type: string;
+    enabled: boolean;
+    nullable: boolean;
 }
 
 export interface TableDef {
