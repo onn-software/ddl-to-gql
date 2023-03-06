@@ -41,7 +41,7 @@ describe('Executor', () => {
     ).execute({
       phases: [],
       ddlPath: '/Users/hardy/Development/Onn/ddl-to-gql/example/example.ddl',
-      heurPath: './test/spec/heuristic.json',
+      heurPath: './heuristic.json',
       heurSuffixes: "'id','code','number'",
       heurEnableAll: true,
       defPath: './table-definitions.json',
@@ -52,3 +52,5 @@ describe('Executor', () => {
     });
   });
 });
+
+// TODO create nested folders for defPath and heurPath if needed

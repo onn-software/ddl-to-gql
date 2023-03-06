@@ -90,9 +90,6 @@ export class Executor {
     if ((options.phases.length === 0 || options.phases.indexOf('ddl') >= 0) && !options.ddlPath) {
       throw Error('The option ddlPath is mandatory when ddl interpretation is enabled');
     }
-    if ((options.phases.length === 0 || options.phases.indexOf('heuristics') >= 0) && !options.heurPath) {
-      throw Error('The option heurPath is mandatory when heuristics interpretation is enabled');
-    }
 
     if (
       options.phases.length === 0 ||

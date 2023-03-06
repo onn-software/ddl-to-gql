@@ -57,7 +57,7 @@ export class DdlInterpreter {
     if (
       reservedNames.indexOf(key.toUpperCase()) >= 0 || // reservedName
       !/^[a-zA-Z]/.test(key) || // starts with non-letter
-      /[^a-zA-Z0-9]/.test(key) // contains special chars
+      /[^a-zA-Z0-9_]/.test(key) // contains special chars (non a-z A-Z 0-9 or _)
     ) {
       key = '_' + key.replaceAll(/[^a-zA-Z0-9]/g, '_');
     }

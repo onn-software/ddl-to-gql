@@ -12,7 +12,7 @@ CREATE TABLE `tableName`
     `id`            int             PRIMARY KEY ,
     someField       varchar(50)     NOT NULL,
     `1uglyName`     bool            NULL,
-    CONSTRAINT      `myConstraint`  FOREIGN KEY (`id`) REFERENCES `anotherTable` (`anotherId`)
+    CONSTRAINT      `myConstraint`  FOREIGN KEY (`id`) REFERENCES `anotherTa ble` (`anotherId`)
 )
 ```
 
@@ -87,7 +87,7 @@ By default we will only look for exact name matches, and matches based on the su
 More suffixes can be supplied as a comma seperated list.
 
 ```
---heurPath=./onn/heuristics.json --heurSuffixes=id,anotherSuffix  --heurEnableAll=true
+--heurPath=./onn/heuristics.json --heurSuffixes=id,anotherSuffix  --heurEnableAll
 ```
 
 Another important flag is `heurEnableAll` which is disabled by default. The found relations might not be valid, 

@@ -3,7 +3,7 @@ import { TableRelationDef } from './model';
 const relationTypeMap: Record<string, string> = {
   suffixMatch: 'suf',
   nameMatch: 'name',
-  foreignKey: 'rel',
+  foreignKey: 'fk',
 };
 
 export class Globals {
@@ -19,7 +19,7 @@ export class Globals {
   }
 
   static composeToRelationKey(r: TableRelationDef) {
-    return `${relationTypeMap[r.type]??r.type}__${r.to.table}__by__${r.from.key}__to__${
+    return `rel_${relationTypeMap[r.type]??r.type}__${r.to.table}__by__${r.from.key}__to__${
       r.to.key
     }`.replaceAll('`', '');
   }

@@ -32,7 +32,7 @@ program
     'id'
   )
   .option(
-    '--heurEnableAll <text>',
+    '--heurEnableAll',
     'Optional: Flag to indicate to enable all found heuristics, without inspection by the user, used in phases [heuristics].',
     false
   )
