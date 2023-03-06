@@ -9,18 +9,18 @@ export interface GqlParams<GraphQLResolveInfo = any> {
   info: GraphQLResolveInfo;
 }
 
-export type OnnBefore = <T>(resolverName: string, gqlParams: GqlParams) => { value: T | null, gqlParams: GqlParams } | null;
-export type OnnAfter = <T>(resolverName: string, result: T, gqlParams: GqlParams) => T;
+export type OnnBeforeGql = <T>(resolverName: string, gqlParams: GqlParams) => { value: T | null, gqlParams: GqlParams } | null;
+export type OnnAfterGql = <T>(resolverName: string, result: T, gqlParams: GqlParams) => T;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
-  constructor(queryBuilderFactory: <T extends {}>() => QueryBuilder<T>, options?: { onnBefore?: OnnBefore; onnAfter?: OnnAfter }) {
+  constructor(queryBuilderFactory: <T extends {}>() => QueryBuilder<T>, options?: { onnBeforeGql?: OnnBeforeGql; onnAfterGql?: OnnAfterGql }) {
     OnnBaseRepo.BUILDER_FACTORY = queryBuilderFactory;
     
-    if (options?.onnBefore) {
-      OnnResolverHooks.before = options.onnBefore;
+    if (options?.onnBeforeGql) {
+      OnnResolverHooks.before = options.onnBeforeGql;
     }
-    if (options?.onnAfter) {
-      OnnResolverHooks.after = options.onnAfter;
+    if (options?.onnAfterGql) {
+      OnnResolverHooks.after = options.onnAfterGql;
     }
   }
 

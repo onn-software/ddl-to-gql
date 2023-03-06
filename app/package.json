@@ -27,6 +27,7 @@
     "DDL"
   ],
   "scripts": {
+    "run": "ts-node src/index.ts",
     "build": "tsc -p . && cp ../README.md README.md",
     "release": "npm publish"
   },

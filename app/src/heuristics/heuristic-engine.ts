@@ -11,6 +11,7 @@ interface FlatTableDef extends TableDef {
 
 export interface HeuristicEngineOptions {
   suffixes: string[];
+  heurEnableAll?: boolean;
 }
 
 export class HeuristicEngine {
@@ -30,7 +31,8 @@ export class HeuristicEngine {
           leftTable,
           leftCol,
           rightTable,
-          rightCol
+          rightCol,
+          options.heurEnableAll ?? false
         );
         if (relationsByNameMatch) {
           heuristics[leftTable.tableName].relations.push(relationsByNameMatch);
@@ -40,7 +42,8 @@ export class HeuristicEngine {
           leftCol,
           rightTable,
           rightCol,
-          options.suffixes.map((s) => s.toUpperCase())
+          options.suffixes.map((s) => s.toUpperCase()),
+          options.heurEnableAll ?? false
         );
         if (relationsBySuffix) {
           heuristics[leftTable.tableName].relations.push(relationsBySuffix);
@@ -66,10 +69,19 @@ export class HeuristicEngine {
     leftTableDef: FlatTableDef,
     leftCol: FlatTableColDef,
     rightTableDef: FlatTableDef,
-    rightCol: FlatTableColDef
+    rightCol: FlatTableColDef,
+    heurEnableAll: boolean
   ): TableRelationDef | null {
     if (leftCol.flatKeyName === rightCol.flatKeyName && leftCol.type === rightCol.type) {
-      return this.buildRelation(leftTableDef, leftCol, rightTableDef, rightCol, true, 'nameMatch');
+      return this.buildRelation(
+        leftTableDef,
+        leftCol,
+        rightTableDef,
+        rightCol,
+        true,
+        'nameMatch',
+        heurEnableAll
+      );
     }
     return null;
   }
@@ -94,7 +106,8 @@ export class HeuristicEngine {
     leftCol: FlatTableColDef,
     rightTableDef: FlatTableDef,
     rightCol: FlatTableColDef,
-    suffixes: string[]
+    suffixes: string[],
+    heurEnableAll: boolean
   ): TableRelationDef | null {
     if (leftCol.type !== rightCol.type) {
       // No type match, so no relation
@@ -145,7 +158,8 @@ export class HeuristicEngine {
       rightTableDef,
       rightCol,
       leftIsSuffix,
-      'suffixMatch'
+      'suffixMatch',
+      heurEnableAll
     );
   }
 
@@ -155,7 +169,8 @@ export class HeuristicEngine {
     rightTableDef: FlatTableDef,
     rightCol: FlatTableColDef,
     many: boolean,
-    type: string
+    type: string,
+    heurEnableAll: boolean
   ): TableRelationDef | null {
     const relationsAlreadyExists =
       leftTableDef.relations.findIndex((value) => {
@@ -182,7 +197,7 @@ export class HeuristicEngine {
         },
         many,
         type,
-        enabled: false,
+        enabled: heurEnableAll,
         nullable: !many,
       };
     }

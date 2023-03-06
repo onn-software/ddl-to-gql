@@ -20,8 +20,9 @@ describe('Executor', () => {
     ).execute({
       phases: [],
       ddlPath: './src/ddl-interpreter/__stubs__/interpret-test.ddl',
-      heurPath: './test/executor/heuristic.json',
+      heurPath: './test/executor/heuristics.json',
       heurSuffixes: "id,code,number",
+      heurEnableAll:true,
       defPath: './test/executor/table-definitions.json',
       tsFolder: 'test/executor/ts',
       gqlFolder: 'test/executor/gql',
@@ -42,6 +43,7 @@ describe('Executor', () => {
       ddlPath: '/Users/hardy/Development/Onn/ddl-to-gql/example/example.ddl',
       heurPath: './test/spec/heuristic.json',
       heurSuffixes: "'id','code','number'",
+      heurEnableAll: true,
       defPath: './table-definitions.json',
       tsFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/ts',
       gqlFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/gql',

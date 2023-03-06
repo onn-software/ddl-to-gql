@@ -20,12 +20,7 @@ Based on a valid DDL file a complete Graph is created, respecting the `FOREIGN K
 A complete GraphQL setup is generated.
 
 ```npm
-npx @onn-software/ddl-to-gql \
-    --ddlPath ./example.ddl \
-    --defPath ./table-definitions.json \
-    --tsFolder src/gen/onn/ts \
-    --gqlFolder src/gen/onn/gql \
-    --sqlFactory knex
+npx @onn-software/ddl-to-gql --ddlPath ./example.ddl --sqlFactory knex
 ```
 
 ## Integrate in Yoga/Apollo GraphQL
@@ -61,7 +56,7 @@ const schema = makeExecutableSchema({
 
 In this example we use [Knex.js](https://knexjs.org/) to connect to the database. 
 We are agnostic from the SQL layer, by implementing our `QueryBuilder` interface any database can be connected.
-In the future we want to support more databases out of the box, but as od now we only supply a `QueryBuilder` for knex.
+In the future we want to support more databases out of the box, but as of now we only supply a `QueryBuilder` for knex.
 
 Take a look at our example how to set up Knex.
 
@@ -75,11 +70,51 @@ When it's running, you can explore the data set via [Yoga GraphiQL](http://local
 
 ## Get the DDL via Adminer
 
-The exmaple uses Adminer for a quick and easy DB overview. You can use any tool to obtain the DDL, IntelliJ has plugins ,VS Code has plugins, there are dedicated SQL tools, or perhaps your database is provisioned from code by having the DDL committed to the repo.
+The example uses Adminer for a quick and easy DB overview. You can use any tool to obtain the DDL, IntelliJ has plugins ,VS Code has plugins, there are dedicated SQL tools, or perhaps your database is provisioned from code by having the DDL committed to the repo.
 
 One way to get it is via the Adminer UI:
 
 ![How to DDL](AdminerDDL.png)
+
+## Advanced usage - Commandline
+
+### Heuristics
+
+Most likely you do not control the database targeted by `@onn/ddl-to-gql`. It's possible that not all relations are mapped properly.
+For example there might be a missing foreign relation between `customer.orderId` and `orders.id`. Or `customer.city` and `shop.city`.
+We can cross-reference the entire DDL to search for missing relations, these will be stored in the file `heurPath`. 
+By default we will only look for exact name matches, and matches based on the suffix `id`. 
+More suffixes can be supplied as a comma seperated list.
+
+```
+--heurPath=./onn/heuristics.json --heurSuffixes=id,anotherSuffix  --heurEnableAll=true
+```
+
+Another important flag is `heurEnableAll` which is disabled by default. The found relations might not be valid, 
+therefore we encourage the user to inspect the output of the `heurPath` file, or explicitly rely on all heuristics by setting `heurEnableAll`.
+
+### Files and Prefixes
+
+Using `tsPrefix` and `gqlPrefix` the type names of the generated object can be modified. 
+It is recommended to separate the generated definition `.json` files from the generated `.ts` and `.graphql` files
+, this can be realised by utilizing the `tsFolder` and `gqlFolder` options.
+You can either choose to commit the generated files to your codebase, or commit the definition files and run the code
+generation step as part of your build. You could even opt to only store the source `.ddl` file, and run the generation
+as part of your build.
+
+```
+--tsFolder myrProject/src/gen/onn/ts --gqlFolder myrProject/src/gen/onn/gql --tsPrefix=Onn --tsPrefix=Onn --gqlPrefix=Gql
+```
+
+### Phase selection
+
+Instead of running everything, it is also possible to run one or more phases separate. 
+This can be useful when using advanced heuristics for example. 
+By default all phases are run, which is similar to: 
+
+```
+--phases=ddl,heuristics,model,repo,resolver,schema,main
+```
 
 ## Licence
 

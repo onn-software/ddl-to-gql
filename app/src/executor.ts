@@ -15,6 +15,7 @@ export interface ExecutorOptions {
   defPath: string;
   heurPath?: string;
   heurSuffixes?: string;
+  heurEnableAll?: boolean;
   ddlPath?: string;
   tsFolder?: string;
   tsPrefix?: string;
@@ -39,6 +40,7 @@ export class Executor {
     console.log(`Options`, options);
 
     this.assertOptions(options);
+
     if (options.phases.length === 0 || options.phases.indexOf('ddl') >= 0) {
       console.log(`Phase: ddl`);
       this.executeDdl(options.ddlPath!, options.defPath);
@@ -48,10 +50,10 @@ export class Executor {
 
     if (options.phases.length === 0 || options.phases.indexOf('heuristics') >= 0) {
       console.log(`Phase: heuristics`);
-      this.executeHeuristics(sourceTableDefs, options.heurPath!, options.heurSuffixes?.split(',') ?? []);
+      this.executeHeuristics(sourceTableDefs, options.heurPath!, options.heurSuffixes?.split(',') ?? [], options.heurEnableAll);
 
     }
-    const heuristics: TableDef[] = options.heurPath
+    const heuristics: TableDef[] = options.heurPath && fs.existsSync(options.heurPath)
       ? JSON.parse(fs.readFileSync(options.heurPath, 'utf-8'))
       : [];
     const tableDefs = Executor.mergeTableDefs(sourceTableDefs, heuristics);
@@ -151,8 +153,8 @@ export class Executor {
     fs.writeFileSync(tDefPath, JSON.stringify(tableDefs, undefined, 2));
   }
 
-  private executeHeuristics(sourceTableDefs: TableDef[], heurPath: string, suffixes: string[]) {
-    const heurs = this.heuristicEngine.execute(sourceTableDefs, {suffixes});
+  private executeHeuristics(sourceTableDefs: TableDef[], heurPath: string, suffixes: string[], heurEnableAll?: boolean) {
+    const heurs = this.heuristicEngine.execute(sourceTableDefs, {suffixes, heurEnableAll});
     fs.writeFileSync(heurPath, JSON.stringify(heurs, undefined, 2));
   }
 
