@@ -1,6 +1,6 @@
 {
   "name": "@onn-software/ddl-to-gql",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "author": "David Hardy @ Onn Software",
   "description": "Convert a SQL DDL to a GraphQL implementation with all relations.",
   "bugs": {
@@ -28,11 +28,12 @@
   ],
   "scripts": {
     "run": "ts-node src/index.ts",
-    "build": "tsc -p . && cp ../README.md README.md",
+    "build": "rimraf ./dist  && rimraf ./test && tsc -p . && cp ../README.md README.md",
     "release": "npm publish"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
+    "rimraf": "^4.3.1",
     "jest": "^29.4.3",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
