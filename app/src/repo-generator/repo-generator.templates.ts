@@ -42,27 +42,30 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   }
   
   async getBy(
-    key: (__UNIQUE_FIELDS__),
+    clauses: model.Clause[],
     value: any,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
   ): Promise<model.__SQL_TYPE__> {
 __UNSAFE_MAPPERS__
-    const [res] = await this.builder().select(fields).where(key, value).orderBy(orderBy).execute() as any;
+    const [res] = await this.builder()
+        .select(fields)
+        .where(...clauses)
+        .orderBy(orderBy).execute() as any;
 __SAFE_MAPPERS__
     return res;
   }
 
   async getPaginatedBy(
-    clauses: { key: (__NON_UNIQUE_FIELDS__) ; values: any[] }[],
+    clauses: model.Clause[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
-  ): Promise<model.Paginated<model.__SQL_TYPE__>> {
+  ): Promise<model.Paginated<model.__SQL_TYPE__>> {  
 __UNSAFE_MAPPERS__
 __UNSAFE_PAGINATED_MAPPERS__
-    const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder())
+    const queryBuilder = this.builder().where(...clauses);
     const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 }, orderBy);
 __SAFE_PAGINATED_MAPPERS__
     return paginated;

@@ -29,7 +29,8 @@ export const getResolverBlock = `
     if (b?.value) { return b.value; }
     if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getBy("__SAFE_FOREIGN_FIELD_NAME__", gqlParams.parent["__SAFE_FIELD_NAME__"], gqlParams.args.orderBy);
+    const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}];
+    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getBy(clauses, gqlParams.args.orderBy);
     return (await OnnResolverHooks.after("__RELATION_NAME__", result, gqlParams)) as any;
   },
 `;
@@ -42,7 +43,8 @@ export const paginatedResolverBlock = `
     if (b?.value) { return b.value; }
     if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy([{key: "__SAFE_FOREIGN_FIELD_NAME__", values: [gqlParams.parent["__SAFE_FIELD_NAME__"]]}], gqlParams.args.paginate, gqlParams.args.orderBy);
+    const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}];
+    const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy(clauses, gqlParams.args.paginate, gqlParams.args.orderBy);
     return (await OnnResolverHooks.after("__RELATION_NAME__", result, gqlParams)) as any;
   },
 `;

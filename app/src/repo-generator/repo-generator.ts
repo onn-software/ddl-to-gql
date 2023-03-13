@@ -67,7 +67,7 @@ ${remapKeys.map((c) => `      ${c.key}: ${c.sqlKey}`).join(',\n')}
     `;
 
     const unSafeMappers = `    if(orderBy?.field) orderBy.field = ${interfaceName}FieldLookUp[orderBy.field] ?? orderBy.field;`;
-    const unSafePaginatedMappers = `    clauses = clauses.map(clause => ({...clause, key: ${interfaceName}FieldLookUp[clause.key] ?? clause.key}));`;
+    const unSafePaginatedMappers = `    clauses = clauses.map(clause => ({...clause, field: ${interfaceName}FieldLookUp[clause.field] ?? clause.field}));`;
 
     return { lookupTable, unSafeMappers, unSafePaginatedMappers };
   }

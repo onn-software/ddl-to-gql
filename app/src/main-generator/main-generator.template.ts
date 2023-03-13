@@ -1,5 +1,5 @@
 export const main = `import {allGqlQueryResolvers, allGqlResolvers, OnnResolverHooks} from './resolvers';
-import {QueryBuilder} from './model';
+import {QueryBuilder, QueryOperator, Clause} from './model';
 import {OnnBaseRepo} from './repos';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
@@ -47,8 +47,7 @@ export const knexQueryBuilderFactory =
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
   private options: {
     table: string;
-    where: { field: string; value: any }[];
-    whereIn: { field: string; values: any[] }[];
+    where: Clause[];
     orderBy?: { field: string; direction: 'asc' | 'desc' };
     limit?: number;
     offset?: number;
@@ -56,7 +55,6 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
   } = {
     table: '',
     where: [],
-    whereIn: [],
   };
 
   constructor(private knex: Knex, private onExecute: (
@@ -66,8 +64,39 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
 
   private build(): Knex.QueryBuilder<TYPE> {
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
-    this.options.where.forEach((where) => (qb = qb.where(where.field, where.value)));
-    this.options.whereIn.forEach((whereIn) => (qb = qb.whereIn(whereIn.field, whereIn.values)));
+    
+    this.options.where.forEach((clause) => {
+      switch (clause.operator) {
+        case QueryOperator.EQUALS:
+          qb.where(clause.field, clause.value);
+          break;
+        case QueryOperator.IN:
+          qb.whereIn(clause.field, clause.value);
+          break;
+        case QueryOperator.BETWEEN:
+          qb.whereBetween(clause.field, clause.value);
+          break;
+        case QueryOperator.LIKE:
+          qb.whereLike(clause.field, clause.value);
+          break;
+        case QueryOperator.NULL:
+          qb.whereNull(clause.field);
+          break;
+        case QueryOperator.NOT_EQUALS:
+          qb.whereNot(clause.field, clause.value);
+          break;
+        case QueryOperator.NOT_IN:
+          qb.whereNotIn(clause.field, clause.value);
+          break;
+        case QueryOperator.NOT_BETWEEN:
+          qb.whereNotBetween(clause.field, clause.value);
+          break;
+        case QueryOperator.NOT_NULL:
+          qb.whereNotNull(clause.field);
+          break;
+      }
+    });
+    
     if(this.options.orderBy?.field) {
         qb.orderBy(this.options.orderBy.field, this.options.orderBy.direction);
     }
@@ -119,13 +148,8 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     return this;
   }
 
-  where(field: string, value: any): QueryBuilder<TYPE, Knex> {
-    this.options.where.push({ field, value });
-    return this;
-  }
-
-  whereIn(field: string, values: any[]): QueryBuilder<TYPE, Knex> {
-    this.options.whereIn.push({ field, values });
+  where(...clauses: Clause[]): QueryBuilder<TYPE, Knex> {
+    this.options.where.push(...clauses);
     return this;
   }
 }
