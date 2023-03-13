@@ -12,7 +12,7 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
 
   paginate = async (
     qb: model.QueryBuilder<SQL_TYPE>,
-    fields: string | string[] = '*',
+    fields: string[] = ['*'],
     paginate: model.Paginate,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
   ): Promise<model.Paginated<SQL_TYPE>> => {
@@ -45,7 +45,7 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
     key: (__UNIQUE_FIELDS__),
     value: any,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
-    fields: string | string[] = '*',
+    fields: string[] = ['*'],
   ): Promise<model.__SQL_TYPE__> {
 __UNSAFE_MAPPERS__
     const [res] = await this.builder().select(fields).where(key, value).orderBy(orderBy).execute() as any;
@@ -57,7 +57,7 @@ __SAFE_MAPPERS__
     clauses: { key: (__NON_UNIQUE_FIELDS__) ; values: any[] }[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
-    fields: string | string[] = '*',
+    fields: string[] = ['*'],
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {
 __UNSAFE_MAPPERS__
