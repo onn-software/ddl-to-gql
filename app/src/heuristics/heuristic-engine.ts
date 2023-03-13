@@ -17,6 +17,7 @@ export interface HeuristicEngineOptions {
 export class HeuristicEngine {
   execute(tableDefs: TableDef[], options: HeuristicEngineOptions): TableDef[] {
     const flatTableDefs = this.flattenNames(tableDefs);
+    const suffixes = options.suffixes.map(s => s.toUpperCase());
     const res: string[] = [];
 
     const heuristics: Record<string, TableDef> = {};
@@ -32,6 +33,7 @@ export class HeuristicEngine {
           leftCol,
           rightTable,
           rightCol,
+            suffixes,
           options.heurEnableAll ?? false
         );
         if (relationsByNameMatch) {
@@ -42,7 +44,7 @@ export class HeuristicEngine {
           leftCol,
           rightTable,
           rightCol,
-          options.suffixes.map((s) => s.toUpperCase()),
+          suffixes,
           options.heurEnableAll ?? false
         );
         if (relationsBySuffix) {
@@ -70,9 +72,13 @@ export class HeuristicEngine {
     leftCol: FlatTableColDef,
     rightTableDef: FlatTableDef,
     rightCol: FlatTableColDef,
+    suffixes: string[],
     heurEnableAll: boolean
   ): TableRelationDef | null {
-    if (leftCol.flatKeyName === rightCol.flatKeyName && leftCol.type === rightCol.type) {
+    const nameMatch = leftCol.flatKeyName === rightCol.flatKeyName;
+    const typeMatch = leftCol.type === rightCol.type;
+    const isSuffix = suffixes.indexOf(leftCol.flatKeyName) >= 0;
+    if (nameMatch && typeMatch && !isSuffix) {
       return this.buildRelation(
         leftTableDef,
         leftCol,
