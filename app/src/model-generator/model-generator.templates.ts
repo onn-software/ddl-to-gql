@@ -12,6 +12,7 @@ export interface QueryBuilder<TYPE extends {},IMPL = any> {
     execute(): Promise<TYPE[]>;
     executeCount(): Promise<number>;
     table(tableName:string): QueryBuilder<TYPE, IMPL>;
+    orderBy(orderBy?: { field: string, direction: 'asc' | 'desc' }): QueryBuilder<TYPE, IMPL>;
     where(field: string, values: any): QueryBuilder<TYPE, IMPL>;
     whereIn(field: string, values: any[]): QueryBuilder<TYPE, IMPL>;
     select(fields: string | string[]): QueryBuilder<TYPE, IMPL>;

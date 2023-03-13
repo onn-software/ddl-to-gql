@@ -40,9 +40,10 @@ export const repoTemplate = `export class __SQL_TYPE___Repo extends OnnBaseRepo<
   async getBy(
     key: (__UNIQUE_FIELDS__),
     value: any,
-    fields: string | string[] = '*'
+    orderBy?: { field: string, direction: 'asc' | 'desc' },
+    fields: string | string[] = '*',
   ): Promise<model.__SQL_TYPE__> {
-    const [res] = await this.builder().select(fields).where(key, value).execute() as any;
+    const [res] = await this.builder().select(fields).where(key, value).orderBy(orderBy).execute() as any;
 __MAPPERS__
     return res;
   }
@@ -50,10 +51,11 @@ __MAPPERS__
   async getPaginatedBy(
     clauses: { key: (__NON_UNIQUE_FIELDS__) ; values: any[] }[],
     paginate?: model.Paginate | null,
+    orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string | string[] = '*',
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {
-    const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder())
+    const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder()).orderBy(orderBy)
     const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 });
 __PAGINATED_MAPPERS__
     return paginated;

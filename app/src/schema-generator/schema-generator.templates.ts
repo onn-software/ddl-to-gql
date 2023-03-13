@@ -5,6 +5,16 @@ input Paginate {
   pageSize: Int!,
 }
 
+enum OrderDirection {
+  asc
+  desc
+}
+
+input OrderBy {
+  field: String!,
+  direction: OrderDirection!,
+}
+
 `;
 
 export const GqlTypeMap: Record<string, string> = {

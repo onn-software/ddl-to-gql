@@ -9,8 +9,8 @@ export interface GqlParams<GraphQLResolveInfo = any> {
   info: GraphQLResolveInfo;
 }
 
-export type OnnBeforeGql = <T>(resolverName: string, gqlParams: GqlParams) => { value: T | null, gqlParams: GqlParams } | null;
-export type OnnAfterGql = <T>(resolverName: string, result: T, gqlParams: GqlParams) => T;
+export type OnnBeforeGql = <T>(resolverName: string, gqlParams: GqlParams) => Promise<{ value: T | null, gqlParams: GqlParams } | null>;
+export type OnnAfterGql = <T>(resolverName: string, result: T, gqlParams: GqlParams) => Promise<T>;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
   constructor(queryBuilderFactory: <T extends {}>() => QueryBuilder<T>, options?: { onnBeforeGql?: OnnBeforeGql; onnAfterGql?: OnnAfterGql }) {
@@ -40,6 +40,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     table: string;
     where: { field: string; value: any }[];
     whereIn: { field: string; values: any[] }[];
+    orderBy?: { field: string; direction: 'asc' | 'desc' };
     limit?: number;
     offset?: number;
     select?: string | string[];
@@ -55,6 +56,9 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
     this.options.where.forEach((where) => (qb = qb.where(where.field, where.value)));
     this.options.whereIn.forEach((whereIn) => (qb = qb.whereIn(whereIn.field, whereIn.values)));
+    if(this.options.orderBy?.field) {
+        qb.orderBy(this.options.orderBy.field, this.options.orderBy.direction);
+    }
     return qb;
   }
 
@@ -94,6 +98,11 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
 
   table(tableName: string): QueryBuilder<TYPE, Knex> {
     this.options.table = tableName;
+    return this;
+  }
+
+  orderBy(orderBy?: {field: string, direction: 'asc' | 'desc'}): QueryBuilder<TYPE, Knex> {
+    this.options.orderBy = orderBy;
     return this;
   }
 
