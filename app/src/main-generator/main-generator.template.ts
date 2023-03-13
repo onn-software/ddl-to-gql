@@ -36,13 +36,13 @@ export const knexFactrory = `import { Knex } from 'knex';
 export const knexQueryBuilderFactory =
   (
     knex: Knex,
-    buildHook: (
+    onExecute: (
       knexQb: Knex.QueryBuilder,
       options: any
-    ) => Knex.QueryBuilder = (knexQb) => knexQb
+    ) => Promise<Knex.QueryBuilder | any> = async (knexQb) => knexQb
   ) =>
   <T extends {}>() =>
-    new KnexQueryBuilder<T>(knex, buildHook);
+    new KnexQueryBuilder<T>(knex, onExecute);
 
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
   private options: {
@@ -59,7 +59,10 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     whereIn: [],
   };
 
-  constructor(private knex: Knex, private buildHook: (knexQb: Knex.QueryBuilder, options: any) => Knex.QueryBuilder) {}
+  constructor(private knex: Knex, private onExecute: (
+      knexQb: Knex.QueryBuilder,
+      options: any
+    ) => Promise<Knex.QueryBuilder | any>) {}
 
   private build(): Knex.QueryBuilder<TYPE> {
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
@@ -68,10 +71,10 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     if(this.options.orderBy?.field) {
         qb.orderBy(this.options.orderBy.field, this.options.orderBy.direction);
     }
-    return this.buildHook(qb, this.options);
+    return qb;
   }
 
-  execute(): Promise<TYPE[]> {
+  async execute(): Promise<TYPE[]> {
     const qb = this.build();
     if (this.options.offset) {
       qb.offset(this.options.offset);
@@ -82,11 +85,12 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     if (this.options.select) {
       qb.select(this.options.select);
     }
-    return qb;
+    
+    return this.onExecute(qb, this.options);
   }
 
   async executeCount(): Promise<number> {
-    const count = await this.build().count();
+    const count = await this.onExecute(this.build().count(), this.options);
     return count[0]['count(*)'] as number;
   }
 
