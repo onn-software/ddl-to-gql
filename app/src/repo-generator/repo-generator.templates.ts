@@ -2,13 +2,13 @@ export const baseRepo = `import * as model from './model';
 
 export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
 
-  static BUILDER_FACTORY: <T extends {}>() => model.QueryBuilder<T> = () => {
+  static BUILDER_FACTORY: <T extends {}>(context: any) => model.QueryBuilder<T> = (context) => {
     throw new Error('No BUILDER_FACTORY set')
   };
 
   protected constructor(private tableName: string) {}
 
-  builder = () => OnnBaseRepo.BUILDER_FACTORY<SQL_TYPE>().table(this.tableName);
+  builder = (context: any) => OnnBaseRepo.BUILDER_FACTORY<SQL_TYPE>(context).table(this.tableName);
 
   paginate = async (
     qb: model.QueryBuilder<SQL_TYPE>,
@@ -42,13 +42,14 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   }
   
   async getBy(
+    context: any,
     clauses: model.Clause[],
     value: any,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
   ): Promise<model.__SQL_TYPE__> {
 __UNSAFE_MAPPERS__
-    const [res] = await this.builder()
+    const [res] = await this.builder(context)
         .select(fields)
         .where(...clauses)
         .orderBy(orderBy).execute() as any;
@@ -57,6 +58,7 @@ __SAFE_MAPPERS__
   }
 
   async getPaginatedBy(
+    context: any,
     clauses: model.Clause[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
@@ -65,7 +67,7 @@ __SAFE_MAPPERS__
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {  
 __UNSAFE_MAPPERS__
 __UNSAFE_PAGINATED_MAPPERS__
-    const queryBuilder = this.builder().where(...clauses);
+    const queryBuilder = this.builder(context).where(...clauses);
     const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 }, orderBy);
 __SAFE_PAGINATED_MAPPERS__
     return paginated;

@@ -11,9 +11,10 @@ export interface GqlParams<GraphQLResolveInfo = any> {
 
 export type OnnBeforeGql = <T>(resolverName: string, gqlParams: GqlParams) => Promise<{ value: T | null, gqlParams: GqlParams } | null>;
 export type OnnAfterGql = <T>(resolverName: string, result: T, gqlParams: GqlParams) => Promise<T>;
+export type OnnExecute = (knexQb: Knex.QueryBuilder, options: any, context: any) => Promise<Knex.QueryBuilder | any>;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
-  constructor(queryBuilderFactory: <T extends {}>() => QueryBuilder<T>, options?: { onnBeforeGql?: OnnBeforeGql; onnAfterGql?: OnnAfterGql }) {
+  constructor(queryBuilderFactory: <T extends {}>(context: any) => QueryBuilder<T>, options?: { onnBeforeGql?: OnnBeforeGql; onnAfterGql?: OnnAfterGql }) {
     OnnBaseRepo.BUILDER_FACTORY = queryBuilderFactory;
     
     if (options?.onnBeforeGql) {
@@ -28,6 +29,17 @@ export class OnnDdlToGql<GraphQLResolveInfo = any> {
   getAllQueryResolvers = () => allGqlQueryResolvers;
 }
 
+export const contextCachingOnExecute: OnnExecute = async (knexQb, options, context) => {
+  if (!context.onn) context.onn = {};
+  const key = JSON.stringify(options);
+  if (context.onn[key]) {
+    return context.onn[key];
+  }
+  const value = await knexQb;
+  context.onn[key] = value;
+  return value;
+};
+
 __FACTORY__
 `
 
@@ -36,13 +48,10 @@ export const knexFactrory = `import { Knex } from 'knex';
 export const knexQueryBuilderFactory =
   (
     knex: Knex,
-    onExecute: (
-      knexQb: Knex.QueryBuilder,
-      options: any
-    ) => Promise<Knex.QueryBuilder | any> = async (knexQb) => knexQb
+    onExecute: OnnExecute = contextCachingOnExecute
   ) =>
-  <T extends {}>() =>
-    new KnexQueryBuilder<T>(knex, onExecute);
+  <T extends {}>(context: any) =>
+    new KnexQueryBuilder<T>(context, knex, onExecute);
 
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
   private options: {
@@ -57,9 +66,10 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     where: [],
   };
 
-  constructor(private knex: Knex, private onExecute: (
+  constructor(private context: any, private knex: Knex, private onExecute: (
       knexQb: Knex.QueryBuilder,
-      options: any
+      options: any,
+      context: any
     ) => Promise<Knex.QueryBuilder | any>) {}
 
   private build(): Knex.QueryBuilder<TYPE> {
@@ -115,11 +125,11 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
       qb.select(this.options.select);
     }
     
-    return this.onExecute(qb, this.options);
+    return this.onExecute(qb, this.options, this.context);
   }
 
   async executeCount(): Promise<number> {
-    const count = await this.onExecute(this.build().count(), this.options);
+    const count = await this.onExecute(this.build().count(), this.options, this.context);
     return count[0]['count(*)'] as number;
   }
 
