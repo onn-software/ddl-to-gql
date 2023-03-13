@@ -13,12 +13,14 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
   paginate = async (
     qb: model.QueryBuilder<SQL_TYPE>,
     fields: string | string[] = '*',
-    paginate: model.Paginate
+    paginate: model.Paginate,
+    orderBy?: { field: string, direction: 'asc' | 'desc' },
   ): Promise<model.Paginated<SQL_TYPE>> => {
     const totalEntries = await qb.executeCount();
     
+    const _qb = qb.select(fields).orderBy(orderBy);
     const noLimit = paginate.pageSize <= 0;
-    const query = noLimit ? qb.select(fields) : qb.select(fields).offset(paginate.pageIndex * paginate.pageSize).limit(paginate.pageSize);
+    const query = noLimit ? _qb : _qb.offset(paginate.pageIndex * paginate.pageSize).limit(paginate.pageSize);
     const data = await query.execute();
 
     return {
@@ -32,7 +34,9 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
 
 `;
 
-export const repoTemplate = `export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
+export const repoTemplate = `
+__UNSAFE_LOOKUP__
+export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   constructor() {
     super('__SQL_TABLE__');
   }
@@ -43,8 +47,9 @@ export const repoTemplate = `export class __SQL_TYPE___Repo extends OnnBaseRepo<
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string | string[] = '*',
   ): Promise<model.__SQL_TYPE__> {
+__UNSAFE_MAPPERS__
     const [res] = await this.builder().select(fields).where(key, value).orderBy(orderBy).execute() as any;
-__MAPPERS__
+__SAFE_MAPPERS__
     return res;
   }
 
@@ -55,9 +60,11 @@ __MAPPERS__
     fields: string | string[] = '*',
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {
-    const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder()).orderBy(orderBy)
-    const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 });
-__PAGINATED_MAPPERS__
+__UNSAFE_MAPPERS__
+__UNSAFE_PAGINATED_MAPPERS__
+    const queryBuilder = clauses.reduce((qb, c) => qb.whereIn(c.key, c.values), this.builder())
+    const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 }, orderBy);
+__SAFE_PAGINATED_MAPPERS__
     return paginated;
   }
 }
