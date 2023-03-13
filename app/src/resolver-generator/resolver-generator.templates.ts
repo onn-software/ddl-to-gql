@@ -6,6 +6,11 @@ export class OnnResolverHooks {
   static before: <T>(resolverName:string, gqlParams: any) => Promise<{ value: T | null, gqlParams: any } | null> = async () => null;
   static after: <T>(resolverName:string, result: T, gqlParams: any) => Promise<T> = async (_, result) => result;
 }
+
+const mapClauses: (clauses: any[]) => model.Clause[] = clauses => {
+  return (clauses ?? []).map(c => ({field: c.field, operator: c.operator, value:
+    c.booleanValue ?? c.intValue ?? c.floatValue ?? c.stringValue ?? c.intValues ?? c.floatValues ?? c.stringValues}))
+}
 `;
 
 export const resolverTemplate = `
@@ -29,7 +34,7 @@ export const getResolverBlock = `
     if (b?.value) { return b.value; }
     if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}];
+    const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}, ...mapClauses(gqlParams.args.where)];
     const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getBy(clauses, gqlParams.args.orderBy);
     return (await OnnResolverHooks.after("__RELATION_NAME__", result, gqlParams)) as any;
   },
@@ -43,7 +48,7 @@ export const paginatedResolverBlock = `
     if (b?.value) { return b.value; }
     if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}];
+    const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}, ...mapClauses(gqlParams.args.where)];
     const result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy(clauses, gqlParams.args.paginate, gqlParams.args.orderBy);
     return (await OnnResolverHooks.after("__RELATION_NAME__", result, gqlParams)) as any;
   },
@@ -56,7 +61,7 @@ export const queryResolverEntry = `
     if (b?.value) { return b.value; }
     if (b?.gqlParams) { gqlParams = b.gqlParams; }
     
-    const result = await new repo.__SQL_TYPE___Repo().getPaginatedBy([], gqlParams.args.paginate, gqlParams.args.orderBy);
+    const result = await new repo.__SQL_TYPE___Repo().getPaginatedBy(mapClauses(gqlParams.args.where), gqlParams.args.paginate, gqlParams.args.orderBy);
     return (await OnnResolverHooks.after("__TABLE_NAME__", result, gqlParams)) as any;
   },
  `

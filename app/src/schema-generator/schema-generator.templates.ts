@@ -15,6 +15,30 @@ input OrderBy {
   direction: OrderDirection!,
 }
 
+enum ClauseOperator  {
+  EQUALS
+  IN
+  BETWEEN
+  LIKE
+  NULL
+  NOT_EQUALS
+  NOT_IN
+  NOT_BETWEEN
+  NOT_NULL
+}
+
+input WhereClause {
+  field: String!
+  operator: ClauseOperator
+  booleanValue: Boolean
+  intValue: Int
+  floatValue: Float
+  stringValue: String
+  intValues: [Int!]
+  floatValues: [Float!]
+  stringValues: [String!]
+}
+
 `;
 
 export const GqlTypeMap: Record<string, string> = {
