@@ -33,7 +33,16 @@ __FACTORY__
 
 export const knexFactrory = `import { Knex } from 'knex';
 
-export const knexQueryBuilderFactory = (knex: Knex) => <T extends {}>() => new KnexQueryBuilder<T>(knex);
+export const knexQueryBuilderFactory =
+  (
+    knex: Knex,
+    buildHook: (
+      knexQb: Knex.QueryBuilder,
+      options: any
+    ) => Knex.QueryBuilder = (knexQb) => knexQb
+  ) =>
+  <T extends {}>() =>
+    new KnexQueryBuilder<T>(knex, buildHook);
 
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
   private options: {
@@ -50,7 +59,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     whereIn: [],
   };
 
-  constructor(private knex: Knex) {}
+  constructor(private knex: Knex, private buildHook: (knexQb: Knex.QueryBuilder, options: any) => Knex.QueryBuilder) {}
 
   private build(): Knex.QueryBuilder<TYPE> {
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
@@ -59,7 +68,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     if(this.options.orderBy?.field) {
         qb.orderBy(this.options.orderBy.field, this.options.orderBy.direction);
     }
-    return qb;
+    return this.buildHook(qb, this.options);
   }
 
   execute(): Promise<TYPE[]> {
