@@ -44,7 +44,6 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   async getBy(
     context: any,
     clauses: model.Clause[],
-    value: any,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
   ): Promise<model.__SQL_TYPE__> {

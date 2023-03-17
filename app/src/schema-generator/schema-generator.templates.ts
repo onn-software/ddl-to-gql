@@ -29,7 +29,7 @@ enum ClauseOperator  {
 
 input WhereClause {
   field: String!
-  operator: ClauseOperator
+  operator: ClauseOperator!
   booleanValue: Boolean
   intValue: Int
   floatValue: Float
