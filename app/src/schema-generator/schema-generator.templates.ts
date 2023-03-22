@@ -39,6 +39,11 @@ input WhereClause {
   stringValues: [String!]
 }
 
+type MutationResult {
+    success: Boolean!
+    error: String
+}
+
 `;
 
 export const GqlTypeMap: Record<string, string> = {

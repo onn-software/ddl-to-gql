@@ -55,6 +55,10 @@ const main = async () => {
       ...onnDdlToGql.getAllQueryResolvers(),
       version: () => "Dev",
     },
+    Mutation: {
+      ...onnDdlToGql.getAllGqlMutationResolvers(),
+      test: () => 'Hello world'
+    }
   };
 
   // Finish initializing and start the Yoga server, we're done!

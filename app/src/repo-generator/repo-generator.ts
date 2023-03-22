@@ -13,7 +13,7 @@ export class RepoGenerator {
 
     const remapKeys = tableDef.columns.filter((c) => !!c.sqlKey);
 
-    const { lookupTable, unSafeMappers, unSafePaginatedMappers } = this.buildUnsafeMappers(interfaceName, remapKeys);
+    const { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers } = this.buildUnsafeMappers(interfaceName, remapKeys);
 
     const safeMappers = remapKeys
       .map((c) => {
@@ -43,8 +43,9 @@ export class RepoGenerator {
       .replaceAll('__UNIQUE_FIELDS__', unqiueKeys)
       .replaceAll('__NON_UNIQUE_FIELDS__', allKeys)
       .replaceAll('__UNSAFE_LOOKUP__', lookupTable)
-      .replaceAll('__UNSAFE_MAPPERS__', unSafeMappers)
-      .replaceAll('__UNSAFE_PAGINATED_MAPPERS__', unSafePaginatedMappers)
+      .replaceAll('__UNSAFE_VALUE_MAPPERS__', unSafeValueMappers)
+      .replaceAll('__UNSAFE_ORDER_MAPPERS__', unSafeOrderMappers)
+      .replaceAll('__UNSAFE_CLAUSE_MAPPERS__', unSafeClauseMappers)
       .replaceAll('__SAFE_MAPPERS__', safeMappers)
       .replaceAll('__SAFE_PAGINATED_MAPPERS__', safePaginatedMappers)
       .replaceAll('__FIELD_GETTER_BLOCK__', '') // fieldKeyBlocks.join('\n'))
@@ -54,9 +55,9 @@ export class RepoGenerator {
   private buildUnsafeMappers(
     interfaceName: string,
     remapKeys: TableColDef[]
-  ): { lookupTable: string; unSafeMappers: string; unSafePaginatedMappers: string } {
-    if (remapKeys.length < 0) {
-      return { lookupTable: '', unSafeMappers: '', unSafePaginatedMappers: '' };
+  ): { lookupTable: string; unSafeValueMappers: string; unSafeOrderMappers: string; unSafeClauseMappers: string } {
+    if (remapKeys.length <= 0) {
+      return { lookupTable: '', unSafeValueMappers: '', unSafeOrderMappers: '', unSafeClauseMappers: '' };
     }
 
     const lookupTable = `
@@ -66,9 +67,17 @@ ${remapKeys.map((c) => `      ${c.key}: ${c.sqlKey}`).join(',\n')}
     
     `;
 
-    const unSafeMappers = `    if(orderBy?.field) orderBy.field = ${interfaceName}FieldLookUp[orderBy.field] ?? orderBy.field;`;
-    const unSafePaginatedMappers = `    clauses = clauses.map(clause => ({...clause, field: ${interfaceName}FieldLookUp[clause.field] ?? clause.field}));`;
+    const unSafeValueMappers = `
+    const anyValue: any = value;
+    const keys = Object.keys(value);
+    keys.filter(key => !!${interfaceName}FieldLookUp[key]).forEach(key => {
+      anyValue[${interfaceName}FieldLookUp[key]] = anyValue[key]
+      delete anyValue[key]
+    });
+    `;
+    const unSafeOrderMappers = `    if(orderBy?.field) orderBy.field = ${interfaceName}FieldLookUp[orderBy.field] ?? orderBy.field;`;
+    const unSafeClauseMappers = `    clauses = clauses.map(clause => ({...clause, field: ${interfaceName}FieldLookUp[clause.field] ?? clause.field}));`;
 
-    return { lookupTable, unSafeMappers, unSafePaginatedMappers };
+    return { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers };
   }
 }

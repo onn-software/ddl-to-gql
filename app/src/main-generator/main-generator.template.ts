@@ -1,4 +1,4 @@
-export const main = `import {allGqlQueryResolvers, allGqlResolvers, OnnResolverHooks} from './resolvers';
+export const main = `import {allGqlQueryResolvers, allGqlResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
 import {QueryBuilder, QueryOperator, Clause} from './model';
 import {OnnBaseRepo} from './repos';
 
@@ -9,9 +9,9 @@ export interface GqlParams<GraphQLResolveInfo = any> {
   info: GraphQLResolveInfo;
 }
 
-export type OnnBeforeGql = <T>(resolverName: string, gqlParams: GqlParams) => Promise<{ value: T | null, gqlParams: GqlParams } | null>;
-export type OnnAfterGql = <T>(resolverName: string, result: T, gqlParams: GqlParams) => Promise<T>;
-export type OnnExecute = (knexQb: Knex.QueryBuilder, options: any, context: any) => Promise<Knex.QueryBuilder | any>;
+export type OnnBeforeGql = <T, E extends any>(resolverName: string, gqlParams: GqlParams) => Promise<{ value: T | null, gqlParams: GqlParams, extras?: E } | null>;
+export type OnnAfterGql = <T, E extends any>(resolverName: string, result: T, gqlParams: GqlParams, extras?: E) => Promise<T>;
+export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: any) => Promise<Knex.QueryBuilder | any>;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
   constructor(queryBuilderFactory: <T extends {}>(context: any) => QueryBuilder<T>, options?: { onnBeforeGql?: OnnBeforeGql; onnAfterGql?: OnnAfterGql }) {
@@ -27,9 +27,11 @@ export class OnnDdlToGql<GraphQLResolveInfo = any> {
 
   getAllTypeResolvers = () => allGqlResolvers;
   getAllQueryResolvers = () => allGqlQueryResolvers;
+  getAllGqlMutationResolvers = () => allGqlMutationResolvers;
 }
 
-export const contextCachingOnExecute: OnnExecute = async (knexQb, options, context) => {
+export const contextCachingOnExecute: OnnExecute = async (knexQb, action, options, context) => {
+  if(['QUERY', 'COUNT'].indexOf(action) < 0) return knexQb;
   if (!context.onn) context.onn = {};
   const key = JSON.stringify(options);
   if (context.onn[key]) {
@@ -66,11 +68,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     where: [],
   };
 
-  constructor(private context: any, private knex: Knex, private onExecute: (
-      knexQb: Knex.QueryBuilder,
-      options: any,
-      context: any
-    ) => Promise<Knex.QueryBuilder | any>) {}
+  constructor(private context: any, private knex: Knex, private onExecute: OnnExecute) {}
 
   private build(): Knex.QueryBuilder<TYPE> {
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
@@ -113,7 +111,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     return qb;
   }
 
-  async execute(): Promise<TYPE[]> {
+  async executeQuery(): Promise<TYPE[]> {
     const qb = this.build();
     if (this.options.offset) {
       qb.offset(this.options.offset);
@@ -125,12 +123,39 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
       qb.select(this.options.select);
     }
     
-    return this.onExecute(qb, this.options, this.context);
+    return this.onExecute(qb, 'QUERY', this.options, this.context);
   }
 
   async executeCount(): Promise<number> {
-    const count = await this.onExecute(this.build().count(), this.options, this.context);
+    const count = await this.onExecute(this.build().count(), 'COUNT', this.options, this.context);
     return count[0]['count(*)'] as number;
+  }
+  
+  async executeInsert(value: any): Promise<{success: boolean, error?:string}> {
+    try {
+      await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
+      return {success: true}
+    } catch (e: any) {
+        return {success: false, error: e.message ?? e.toString()}
+    }
+  }
+  
+  async executeUpdate(value: any): Promise<{success: boolean, error?:string}> {
+    try {
+      await this.onExecute(this.build().update(value), 'UPDATE', this.options, this.context);
+      return {success: true}
+    } catch (e: any) {
+        return {success: false, error: e.message ?? e.toString()}
+    }
+  }
+  
+  async executeDelete(): Promise<{success: boolean, error?:string}> {
+    try {
+      await this.onExecute(this.build().delete(), 'DELETE', this.options, this.context);
+      return {success: true}
+    } catch (e: any) {
+        return {success: false, error: e.message ?? e.toString()}
+    }
   }
 
   limit(limit: number): QueryBuilder<TYPE, Knex> {

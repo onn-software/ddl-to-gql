@@ -26,9 +26,12 @@ export interface Clause {
     operator: QueryOperator; 
 }
 
-export interface QueryBuilder<TYPE extends {},IMPL = any> {
-    execute(): Promise<TYPE[]>;
+export interface QueryBuilder<TYPE extends {}, IMPL = any> {
+    executeQuery(): Promise<TYPE[]>;
     executeCount(): Promise<number>;
+    executeInsert(value: Partial<TYPE>): Promise<{success: boolean, error?:string}>;
+    executeUpdate(value: Partial<TYPE>): Promise<{success: boolean, error?:string}>;
+    executeDelete(): Promise<{success: boolean, error?:string}>;
     table(tableName:string): QueryBuilder<TYPE, IMPL>;
     orderBy(orderBy?: { field: string, direction: 'asc' | 'desc' }): QueryBuilder<TYPE, IMPL>;
     where(...clause: Clause[]): QueryBuilder<TYPE, IMPL>;

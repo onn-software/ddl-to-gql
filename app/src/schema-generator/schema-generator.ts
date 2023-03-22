@@ -6,18 +6,43 @@ export class SchemaGenerator {
   execute(tableDefs: TableDef[]): string {
     const gqlSchema = tableDefs.map((table) => this.generateGqlSchema(table));
     const gqlQueries = this.generateGqlSchemaQueries(tableDefs);
-    return baseGql + gqlSchema.join('\n') + gqlQueries.join('\n');
+    const gqlMutations = this.generateGqlSchemaMutations(tableDefs);
+    return baseGql + gqlSchema.join('\n') + gqlQueries.join('\n') + gqlMutations.join('\n');
   }
 
   generateGqlSchema(tableDef: TableDef): string {
     const interfaceName = Globals.getGqlName(tableDef.tableName);
+
+    const queryTypes = this.generateQueryTypes(interfaceName, tableDef);
+    const upsertTypes = this.generateUpsertTypes(interfaceName, tableDef);
+
+
+    return [...queryTypes, ...upsertTypes].join('\n');
+  }
+
+  private generateUpsertTypes(interfaceName: string, tableDef: TableDef) {
+    const schema = [`input ${interfaceName}_upsert {`];
+
+    tableDef.columns.forEach((c) => {
+      schema.push(
+          `  ${c.key}: ${GqlTypeMap[c.sqlType.split('(')[0].toUpperCase()] ?? 'String'}`
+      );
+    });
+
+    schema.push('}');
+    schema.push('');
+
+    return schema;
+  }
+
+  private generateQueryTypes(interfaceName: string, tableDef: TableDef) {
     const schema = [`type ${interfaceName} {`];
 
     tableDef.columns.forEach((c) => {
       schema.push(
-        `  ${c.key}: ${GqlTypeMap[c.sqlType.split('(')[0].toUpperCase()] ?? 'String'}${
-          c.nullable ? '' : '!'
-        }`
+          `  ${c.key}: ${GqlTypeMap[c.sqlType.split('(')[0].toUpperCase()] ?? 'String'}${
+              c.nullable ? '' : '!'
+          }`
       );
     });
 
@@ -47,14 +72,27 @@ export class SchemaGenerator {
     schema.push('}');
     schema.push('');
 
-
-    return schema.join('\n');
+    return schema;
   }
 
   private generateGqlSchemaQueries(tableDefs: TableDef[]) {
     const queries = ['', 'extend type Query {'];
     tableDefs.forEach(table => {
       queries.push(`  ${table.tableName}(paginate: Paginate, orderBy: OrderBy, where: [WhereClause!]): Paginated${Globals.getGqlName(table.tableName)}`);
+    })
+
+    queries.push('}');
+    queries.push('');
+
+    return queries;
+  }
+
+  private generateGqlSchemaMutations(tableDefs: TableDef[]) {
+    const queries = ['', 'extend type Mutation {'];
+    tableDefs.forEach(table => {
+      queries.push(`  insert_${table.tableName}(value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
+      queries.push(`  update_${table.tableName}(where: [WhereClause!]!, value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
+      queries.push(`  delete_${table.tableName}(where: [WhereClause!]!): MutationResult!`);
     })
 
     queries.push('}');

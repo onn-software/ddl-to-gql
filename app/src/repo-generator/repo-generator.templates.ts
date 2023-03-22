@@ -21,7 +21,7 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
     const _qb = qb.select(fields).orderBy(orderBy);
     const noLimit = paginate.pageSize <= 0;
     const query = noLimit ? _qb : _qb.offset(paginate.pageIndex * paginate.pageSize).limit(paginate.pageSize);
-    const data = await query.execute();
+    const data = await query.executeQuery();
 
     return {
       pageIndex: noLimit ? 0 : paginate.pageIndex,
@@ -37,8 +37,47 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
 export const repoTemplate = `
 __UNSAFE_LOOKUP__
 export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
+
+  static TABLE = '__SQL_TABLE__';
+
   constructor() {
-    super('__SQL_TABLE__');
+    super(__SQL_TYPE___Repo.TABLE);
+  }
+  
+  async insertBy(
+    context: any,
+    _: unknown,
+    value: Partial<model.__SQL_TYPE__>) {
+    
+__UNSAFE_VALUE_MAPPERS__
+
+    return await this.builder(context)
+      .executeInsert(value) as any;
+  }
+  
+  async updateBy(
+    context: any,
+    clauses: model.Clause[],
+    value: Partial<model.__SQL_TYPE__>) {
+    
+__UNSAFE_CLAUSE_MAPPERS__
+__UNSAFE_VALUE_MAPPERS__
+
+    return await this.builder(context)
+      .where(...clauses)
+      .executeUpdate(value) as any;
+  }
+  
+  async deleteBy(
+    context: any,
+    clauses: model.Clause[],
+    _: unknown) {
+    
+__UNSAFE_CLAUSE_MAPPERS__
+
+    return await this.builder(context)
+      .where(...clauses)
+      .executeDelete() as any;
   }
   
   async getBy(
@@ -47,11 +86,11 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
   ): Promise<model.__SQL_TYPE__> {
-__UNSAFE_MAPPERS__
+__UNSAFE_ORDER_MAPPERS__
     const [res] = await this.builder(context)
         .select(fields)
         .where(...clauses)
-        .orderBy(orderBy).execute() as any;
+        .orderBy(orderBy).executeQuery() as any;
 __SAFE_MAPPERS__
     return res;
   }
@@ -64,8 +103,8 @@ __SAFE_MAPPERS__
     fields: string[] = ['*'],
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {  
-__UNSAFE_MAPPERS__
-__UNSAFE_PAGINATED_MAPPERS__
+__UNSAFE_ORDER_MAPPERS__
+__UNSAFE_CLAUSE_MAPPERS__
     const queryBuilder = this.builder(context).where(...clauses);
     const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 }, orderBy);
 __SAFE_PAGINATED_MAPPERS__

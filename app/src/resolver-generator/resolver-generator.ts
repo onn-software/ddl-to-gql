@@ -2,9 +2,9 @@ import { TableDef } from '../model';
 import { Globals } from '../globals';
 import {
   baseResolver,
-  getResolverBlock,
+  getResolverBlock, mutationResolverEntry, mutationResolvers,
   paginatedResolverBlock, queryResolverEntry, queryResolvers,
-  resolverTemplate,
+  resolverTemplate
 } from './resolver-generator.templates';
 
 export class ResolverGenerator {
@@ -25,8 +25,23 @@ export class ResolverGenerator {
     partialsDefs.push('');
 
     const queryResolvers = this.generateQueryResolvers(tableDefs);
+    const mutationResolvers = this.generateMutationResolvers(tableDefs);
 
-    return baseResolver + partialsDefs.join('\n') + queryResolvers;
+    return baseResolver + partialsDefs.join('\n') + queryResolvers + mutationResolvers;
+  }
+
+  private generateMutationResolvers(tableDefs: TableDef[]): string {
+    const untypedEntries = tableDefs.map((table) =>
+        mutationResolverEntry
+            .replaceAll('__TABLE_NAME__', table.tableName)
+            .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(table.tableName))
+    );
+    const insertEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'insert'));
+    const updateEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'update'));
+    const deleteEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'delete'));
+    const entries = [...insertEntries, ...updateEntries,...deleteEntries]
+
+    return mutationResolvers.replaceAll('__MUTATION_ENTRIES__', entries.join('\n'));
   }
 
   private generateQueryResolvers(tableDefs: TableDef[]): string {
