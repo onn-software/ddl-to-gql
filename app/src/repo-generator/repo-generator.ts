@@ -5,7 +5,8 @@ import { Globals } from '../globals';
 export class RepoGenerator {
   execute(tableDefs: TableDef[]): string {
     const partialsDefs = tableDefs.map((tableDef) => this.generateRepo(tableDef));
-    return baseRepo + partialsDefs.join('\n');
+    const repoFactories = this.generateFactories(tableDefs).join('\n')
+    return baseRepo.replaceAll("__REPO_FACTORIES__", repoFactories) + partialsDefs.join('\n');
   }
 
   private generateRepo(tableDef: TableDef): string {
@@ -80,4 +81,8 @@ ${remapKeys.map((c) => `      ${c.key}: ${c.sqlKey}`).join(',\n')}
 
     return { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers };
   }
+
+    private generateFactories(tableDefs: TableDef[]) {
+        return tableDefs.map(tableDef => `    ${tableDef.tableName}: () => new ${Globals.getTypescriptName(tableDef.tableName)}_Repo() as any,`)
+    }
 }

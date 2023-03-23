@@ -1,6 +1,36 @@
 export const baseRepo = `import * as model from './model';
 
-export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
+export interface OnnRepo<T extends {}> {
+  insertBy(
+    context: any,
+    _: unknown,
+    value: Partial<T>): Promise<model.MutationResult>;
+  updateBy(
+    context: any,
+    clauses: model.Clause[],
+    value: Partial<T>): Promise<model.MutationResult>;
+  deleteBy(
+    context: any,
+    clauses: model.Clause[],
+    _: unknown): Promise<model.MutationResult>;
+  getBy(
+    context: any,
+    clauses: model.Clause[],
+    orderBy?: { field: string, direction: 'asc' | 'desc' },
+    fields?: string[],
+  ): Promise<T>;
+
+  getPaginatedBy(
+    context: any,
+    clauses: model.Clause[],
+    paginate?: model.Paginate | null,
+    orderBy?: { field: string, direction: 'asc' | 'desc' },
+    fields?: string[],
+    builder?: (qb: model.QueryBuilder<T>) => model.QueryBuilder<T>
+  ): Promise<model.Paginated<T>>;
+}
+
+export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TYPE> {
 
   static BUILDER_FACTORY: <T extends {}>(context: any) => model.QueryBuilder<T> = (context) => {
     throw new Error('No BUILDER_FACTORY set')
@@ -30,6 +60,16 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> {
       data: data,
     };
   };
+  
+  abstract deleteBy(context: any, clauses: model.Clause[], _: unknown): Promise<model.MutationResult>;
+  abstract getBy(context: any, clauses: model.Clause[], orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]): Promise<SQL_TYPE>;
+  abstract getPaginatedBy(context: any, clauses: model.Clause[], paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>): Promise<model.Paginated<SQL_TYPE>>;
+  abstract insertBy(context: any, _: unknown, value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
+  abstract updateBy(context: any, clauses: model.Clause[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
+}
+
+export const onnRepoFactory: Record<string, <T extends {}>() => OnnRepo<T>> = {
+__REPO_FACTORIES__
 }
 
 `;
