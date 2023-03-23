@@ -40,7 +40,7 @@ input WhereClause {
 }
 
 type MutationResult {
-    success: Boolean!
+    rows: Int!
     error: String
 }
 

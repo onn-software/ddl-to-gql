@@ -1,5 +1,5 @@
 export const main = `import {allGqlQueryResolvers, allGqlResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
-import {QueryBuilder, QueryOperator, Clause} from './model';
+import {QueryBuilder, QueryOperator, Clause, MutationResult} from './model';
 import {OnnBaseRepo} from './repos';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
@@ -131,30 +131,30 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     return count[0]['count(*)'] as number;
   }
   
-  async executeInsert(value: any): Promise<{success: boolean, error?:string}> {
+  async executeInsert(value: any): Promise<MutationResult> {
     try {
-      await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
-      return {success: true}
+      const [rows] = await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
+      return {rows, error: rows > 0 ? undefined : 'Nothing matches clauses'}
     } catch (e: any) {
-        return {success: false, error: e.message ?? e.toString()}
+        return {rows: 0, error: e.message ?? e.toString()}
     }
   }
   
-  async executeUpdate(value: any): Promise<{success: boolean, error?:string}> {
+  async executeUpdate(value: any): Promise<MutationResult> {
     try {
-      await this.onExecute(this.build().update(value), 'UPDATE', this.options, this.context);
-      return {success: true}
+      const rows = await this.onExecute(this.build().update(value), 'UPDATE', this.options, this.context);
+      return {rows, error: rows > 0 ? undefined : 'Nothing matches clauses'}
     } catch (e: any) {
-        return {success: false, error: e.message ?? e.toString()}
+        return {rows: 0, error: e.message ?? e.toString()}
     }
   }
   
-  async executeDelete(): Promise<{success: boolean, error?:string}> {
+  async executeDelete(): Promise<MutationResult> {
     try {
-      await this.onExecute(this.build().delete(), 'DELETE', this.options, this.context);
-      return {success: true}
+      const rows = await this.onExecute(this.build().delete(), 'DELETE', this.options, this.context);
+      return {rows, error: rows > 0 ? undefined : 'Nothing matches clauses'}
     } catch (e: any) {
-        return {success: false, error: e.message ?? e.toString()}
+        return {rows: 0, error: e.message ?? e.toString()}
     }
   }
 

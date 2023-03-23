@@ -1,6 +1,6 @@
 {
   "name": "@onn-software/ddl-to-gql-example",
-  "version": "0.3.3",
+  "version": "0.4.1",
   "author": "David Hardy @ Onn Software",
   "description": "Convert a SQL DDL to a GraphQL implementation with all relations.",
   "bugs": {

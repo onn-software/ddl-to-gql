@@ -26,12 +26,17 @@ export interface Clause {
     operator: QueryOperator; 
 }
 
+export interface MutationResult { 
+    rows: number;
+    error?: string;
+}
+
 export interface QueryBuilder<TYPE extends {}, IMPL = any> {
     executeQuery(): Promise<TYPE[]>;
     executeCount(): Promise<number>;
-    executeInsert(value: Partial<TYPE>): Promise<{success: boolean, error?:string}>;
-    executeUpdate(value: Partial<TYPE>): Promise<{success: boolean, error?:string}>;
-    executeDelete(): Promise<{success: boolean, error?:string}>;
+    executeInsert(value: Partial<TYPE>): Promise<MutationResult>;
+    executeUpdate(value: Partial<TYPE>): Promise<MutationResult>;
+    executeDelete(): Promise<MutationResult>;
     table(tableName:string): QueryBuilder<TYPE, IMPL>;
     orderBy(orderBy?: { field: string, direction: 'asc' | 'desc' }): QueryBuilder<TYPE, IMPL>;
     where(...clause: Clause[]): QueryBuilder<TYPE, IMPL>;

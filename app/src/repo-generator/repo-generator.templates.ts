@@ -47,7 +47,7 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   async insertBy(
     context: any,
     _: unknown,
-    value: Partial<model.__SQL_TYPE__>) {
+    value: Partial<model.__SQL_TYPE__>): Promise<model.MutationResult> {
     
 __UNSAFE_VALUE_MAPPERS__
 
@@ -58,7 +58,7 @@ __UNSAFE_VALUE_MAPPERS__
   async updateBy(
     context: any,
     clauses: model.Clause[],
-    value: Partial<model.__SQL_TYPE__>) {
+    value: Partial<model.__SQL_TYPE__>): Promise<model.MutationResult> {
     
 __UNSAFE_CLAUSE_MAPPERS__
 __UNSAFE_VALUE_MAPPERS__
@@ -71,7 +71,7 @@ __UNSAFE_VALUE_MAPPERS__
   async deleteBy(
     context: any,
     clauses: model.Clause[],
-    _: unknown) {
+    _: unknown): Promise<model.MutationResult> {
     
 __UNSAFE_CLAUSE_MAPPERS__
 
