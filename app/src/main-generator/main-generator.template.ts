@@ -1,4 +1,4 @@
-export const main = `import {allGqlQueryResolvers, allGqlResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
+export const main = `import {allGqlQueryResolvers, allGqlTypeResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
 import {QueryBuilder, QueryOperator, Clause, MutationResult} from './model';
 import {OnnBaseRepo} from './repos';
 
@@ -9,23 +9,23 @@ export interface GqlParams<GraphQLResolveInfo = any> {
   info: GraphQLResolveInfo;
 }
 
-export type OnnBeforeGql = <T, E extends any>(resolverName: string, gqlParams: GqlParams) => Promise<{ value: T | null, gqlParams: GqlParams, extras?: E } | null>;
-export type OnnAfterGql = <T, E extends any>(resolverName: string, result: T, gqlParams: GqlParams, extras?: E) => Promise<T>;
+export interface OnnResolverWrapper {
+  before: <T>(resolverName:string, gqlParams: GqlParams) => Promise< T | undefined | null>;
+  after: <T>(resolverName:string, result: T, gqlParams: GqlParams) => Promise<T>;
+}
+
 export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: any) => Promise<Knex.QueryBuilder | any>;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
-  constructor(queryBuilderFactory: <T extends {}>(context: any) => QueryBuilder<T>, options?: { onnBeforeGql?: OnnBeforeGql; onnAfterGql?: OnnAfterGql }) {
+  constructor(queryBuilderFactory: <T extends {}>(context: any) => QueryBuilder<T>, options?: { onnWrapperBuilder?: () => OnnResolverWrapper }) {
     OnnBaseRepo.BUILDER_FACTORY = queryBuilderFactory;
     
-    if (options?.onnBeforeGql) {
-      OnnResolverHooks.before = options.onnBeforeGql;
-    }
-    if (options?.onnAfterGql) {
-      OnnResolverHooks.after = options.onnAfterGql;
+    if (options?.onnWrapperBuilder) {
+      OnnResolverHooks.buildWrapper = options.onnWrapperBuilder;
     }
   }
 
-  getAllTypeResolvers = () => allGqlResolvers;
+  getAllTypeResolvers = () => allGqlTypeResolvers;
   getAllQueryResolvers = () => allGqlQueryResolvers;
   getAllGqlMutationResolvers = () => allGqlMutationResolvers;
 }

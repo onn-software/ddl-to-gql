@@ -90,7 +90,9 @@ __UNSAFE_ORDER_MAPPERS__
     const [res] = await this.builder(context)
         .select(fields)
         .where(...clauses)
-        .orderBy(orderBy).executeQuery() as any;
+        .orderBy(orderBy)
+        .limit(1)
+        .executeQuery() as any;
 __SAFE_MAPPERS__
     return res;
   }

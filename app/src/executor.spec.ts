@@ -48,6 +48,7 @@ describe('Executor', () => {
       tsFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/ts',
       gqlFolder: '/Users/hardy/Development/Onn/ddl-to-gql/example/src/gen/onn/gql',
       override: true,
+      gqlNoRoot: true,
       sqlFactory: 'knex',
     });
   });

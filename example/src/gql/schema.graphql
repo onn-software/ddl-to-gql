@@ -1,7 +1,8 @@
 type Query {
   version: String
+  onn: GqlQuery
 }
 
 type Mutation {
-  test:String
+  onn: GqlMutation
 }

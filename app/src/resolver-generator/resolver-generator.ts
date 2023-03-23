@@ -8,26 +8,30 @@ import {
 } from './resolver-generator.templates';
 
 export class ResolverGenerator {
-  execute(tableDefs: TableDef[]): string {
+  execute(tableDefs: TableDef[], gqlNoRoot:boolean = false): string {
     const partialsDefs = tableDefs.map((tableDef) => this.generateResolver(tableDef));
 
     partialsDefs.push('');
-    partialsDefs.push('export const allGqlResolvers = {');
+    partialsDefs.push('export const allGqlTypeResolvers = {');
     partialsDefs.push(
       tableDefs
         .map((table) => {
           const interfaceName = Globals.getGqlName(table.tableName);
-          return `  ${interfaceName}: ${interfaceName}_Resolver`;
+          return `  ${interfaceName}: ${interfaceName}_Resolver,`;
         })
-        .join(',\n')
+        .join('\n')
     );
+    if(gqlNoRoot) {
+      partialsDefs.push(`  GqlQuery: allGqlQueryResolvers,`)
+      partialsDefs.push(`  GqlMutation: allGqlMutationResolvers,`)
+    }
     partialsDefs.push('};');
     partialsDefs.push('');
 
     const queryResolvers = this.generateQueryResolvers(tableDefs);
     const mutationResolvers = this.generateMutationResolvers(tableDefs);
 
-    return baseResolver + partialsDefs.join('\n') + queryResolvers + mutationResolvers;
+    return baseResolver + queryResolvers + mutationResolvers + partialsDefs.join('\n');
   }
 
   private generateMutationResolvers(tableDefs: TableDef[]): string {

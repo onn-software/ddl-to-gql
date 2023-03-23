@@ -3,10 +3,10 @@ import { Globals } from '../globals';
 import { baseGql, GqlTypeMap } from './schema-generator.templates';
 
 export class SchemaGenerator {
-  execute(tableDefs: TableDef[]): string {
+  execute(tableDefs: TableDef[], gqlNoRoot:boolean = false): string {
     const gqlSchema = tableDefs.map((table) => this.generateGqlSchema(table));
-    const gqlQueries = this.generateGqlSchemaQueries(tableDefs);
-    const gqlMutations = this.generateGqlSchemaMutations(tableDefs);
+    const gqlQueries = this.generateGqlSchemaQueries(tableDefs, gqlNoRoot);
+    const gqlMutations = this.generateGqlSchemaMutations(tableDefs, gqlNoRoot);
     return baseGql + gqlSchema.join('\n') + gqlQueries.join('\n') + gqlMutations.join('\n');
   }
 
@@ -75,8 +75,15 @@ export class SchemaGenerator {
     return schema;
   }
 
-  private generateGqlSchemaQueries(tableDefs: TableDef[]) {
-    const queries = ['', 'extend type Query {'];
+  private generateGqlSchemaQueries(tableDefs: TableDef[], gqlNoRoot:boolean) {
+    const queries = [''];
+
+    if(gqlNoRoot) {
+      queries.push(`type ${Globals.GQL_PREFIX}Query {`)
+    } else {
+      queries.push('extend type Query {')
+    }
+
     tableDefs.forEach(table => {
       queries.push(`  ${table.tableName}(paginate: Paginate, orderBy: OrderBy, where: [WhereClause!]): Paginated${Globals.getGqlName(table.tableName)}`);
     })
@@ -87,17 +94,24 @@ export class SchemaGenerator {
     return queries;
   }
 
-  private generateGqlSchemaMutations(tableDefs: TableDef[]) {
-    const queries = ['', 'extend type Mutation {'];
+  private generateGqlSchemaMutations(tableDefs: TableDef[], gqlNoRoot: boolean) {
+    const mutations = [''];
+
+    if(gqlNoRoot) {
+      mutations.push(`type ${Globals.GQL_PREFIX}Mutation {`)
+    } else {
+      mutations.push('extend type Mutation {')
+    }
+
     tableDefs.forEach(table => {
-      queries.push(`  insert_${table.tableName}(value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
-      queries.push(`  update_${table.tableName}(where: [WhereClause!]!, value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
-      queries.push(`  delete_${table.tableName}(where: [WhereClause!]!): MutationResult!`);
+      mutations.push(`  insert_${table.tableName}(value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
+      mutations.push(`  update_${table.tableName}(where: [WhereClause!]!, value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
+      mutations.push(`  delete_${table.tableName}(where: [WhereClause!]!): MutationResult!`);
     })
 
-    queries.push('}');
-    queries.push('');
+    mutations.push('}');
+    mutations.push('');
 
-    return queries;
+    return mutations;
   }
 }

@@ -21,6 +21,7 @@ export interface ExecutorOptions {
   tsPrefix?: string;
   gqlPrefix?: string;
   gqlFolder?: string;
+  gqlNoRoot?: boolean;
   sqlFactory?: string;
   override?: boolean;
 }
@@ -70,12 +71,12 @@ export class Executor {
     }
     if (options.phases.length === 0 || options.phases.indexOf('resolver') >= 0) {
       console.log(`Phase: resolver`);
-      const res = this.resolverGenerator.execute(tableDefs);
+      const res = this.resolverGenerator.execute(tableDefs, options.gqlNoRoot);
       fs.writeFileSync(`${options.tsFolder}/resolvers.ts`, res);
     }
     if (options.phases.length === 0 || options.phases.indexOf('schema') >= 0) {
       console.log(`Phase: schema`);
-      const res = this.schemaGenerator.execute(tableDefs);
+      const res = this.schemaGenerator.execute(tableDefs, options.gqlNoRoot);
       fs.writeFileSync(`${options.gqlFolder}/onn-ddl-to-gql.graphql`, res);
     }
     if (options.phases.length === 0 || options.phases.indexOf('main') >= 0) {
@@ -159,7 +160,6 @@ export class Executor {
     sourceTableDefs: TableDef[],
     ...partialTableDefs: TableDef[][]
   ): TableDef[] {
-    console.log(`partialTableDefs`, partialTableDefs);
     const tableDefsRecord = associateBy(sourceTableDefs, (td) => td.tableName);
     partialTableDefs.forEach((tableDefs) =>
       tableDefs.forEach((def) => {
