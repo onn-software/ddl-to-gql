@@ -31,6 +31,14 @@ export interface MutationResult {
     error?: string;
 }
 
+export interface OnnContext {
+  onn?: {
+    skipCache?: boolean
+    cache?: Record<string, any>
+    extras?: Record<string, any>
+  }
+}
+
 export interface QueryBuilder<TYPE extends {}, IMPL = any> {
     executeQuery(): Promise<TYPE[]>;
     executeCount(): Promise<number>;

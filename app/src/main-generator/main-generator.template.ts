@@ -1,11 +1,11 @@
 export const main = `import {allGqlQueryResolvers, allGqlTypeResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
-import {QueryBuilder, QueryOperator, Clause, MutationResult} from './model';
+import {QueryBuilder, QueryOperator, Clause, MutationResult, OnnContext} from './model';
 import {OnnBaseRepo} from './repos';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
   parent: any;
   args: Record<string, any>;
-  context: any;
+  context: OnnContext;
   info: GraphQLResolveInfo;
 }
 
@@ -14,10 +14,10 @@ export interface OnnResolverWrapper {
   after: <T>(resolverName:string, result: T, gqlParams: GqlParams) => Promise<T>;
 }
 
-export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: any) => Promise<Knex.QueryBuilder | any>;
+export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: OnnContext) => Promise<Knex.QueryBuilder | any>;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
-  constructor(queryBuilderFactory: <T extends {}>(context: any) => QueryBuilder<T>, options?: { onnWrapperBuilder?: () => OnnResolverWrapper }) {
+  constructor(queryBuilderFactory: <T extends {}>(context: OnnContext) => QueryBuilder<T>, options?: { onnWrapperBuilder?: () => OnnResolverWrapper }) {
     OnnBaseRepo.BUILDER_FACTORY = queryBuilderFactory;
     
     if (options?.onnWrapperBuilder) {
@@ -30,15 +30,20 @@ export class OnnDdlToGql<GraphQLResolveInfo = any> {
   getAllGqlMutationResolvers = () => allGqlMutationResolvers;
 }
 
-export const contextCachingOnExecute: OnnExecute = async (knexQb, action, options, context) => {
+export const contextCachingOnExecute: OnnExecute = async (knexQb, action, options, context = {}) => {
+  if(context.onn?.extras?.transacting){
+    knexQb = knexQb.transacting(context.onn.extras.transacting)
+  }
   if(['QUERY', 'COUNT'].indexOf(action) < 0) return knexQb;
   if (!context.onn) context.onn = {};
+  if (context.onn.skipCache) return knexQb;
+  if (!context.onn.cache) context.onn.cache = {};
   const key = JSON.stringify(options);
-  if (context.onn[key]) {
-    return context.onn[key];
+  if (context.onn.cache[key]) {
+    return context.onn.cache[key];
   }
   const value = await knexQb;
-  context.onn[key] = value;
+  context.onn.cache[key] = value;
   return value;
 };
 
@@ -52,7 +57,7 @@ export const knexQueryBuilderFactory =
     knex: Knex,
     onExecute: OnnExecute = contextCachingOnExecute
   ) =>
-  <T extends {}>(context: any) =>
+  <T extends {}>(context: OnnContext) =>
     new KnexQueryBuilder<T>(context, knex, onExecute);
 
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
@@ -68,7 +73,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     where: [],
   };
 
-  constructor(private context: any, private knex: Knex, private onExecute: OnnExecute) {}
+  constructor(private context: OnnContext, private knex: Knex, private onExecute: OnnExecute) {}
 
   private build(): Knex.QueryBuilder<TYPE> {
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
