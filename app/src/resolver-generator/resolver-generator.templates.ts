@@ -12,7 +12,7 @@ export class OnnResolverHooks {
   });
 }
 
-export const mapClauses: (clauses?: any[]) => model.Clause[] = clauses => {
+export const mapClauses: <T = any>(clauses?: any[]) => model.Clause<T>[] = clauses => {
   return (clauses ?? []).map(c => ({field: c.field, operator: c.operator, value:
     c.booleanValue ?? c.intValue ?? c.floatValue ?? c.stringValue ?? c.intValues ?? c.floatValues ?? c.stringValues}))
 }

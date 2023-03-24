@@ -20,10 +20,10 @@ export enum QueryOperator {
   NOT_NULL = 'NOT_NULL',
 }
 
-export interface Clause { 
-    field: string; 
-    value: any;
+export interface Clause<T = string> { 
+    field: T; 
     operator: QueryOperator; 
+    value: any;
 }
 
 export interface MutationResult { 

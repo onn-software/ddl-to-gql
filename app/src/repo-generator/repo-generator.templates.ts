@@ -7,22 +7,22 @@ export interface OnnRepo<T extends {}> {
     value: Partial<T>): Promise<model.MutationResult>;
   updateBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof T>[],
     value: Partial<T>): Promise<model.MutationResult>;
   deleteBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof T>[],
     _: unknown): Promise<model.MutationResult>;
   getBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof T>[],
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields?: string[],
   ): Promise<T>;
 
   getPaginatedBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof T>[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields?: string[],
@@ -61,11 +61,11 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TY
     };
   };
   
-  abstract deleteBy(context: any, clauses: model.Clause[], _: unknown): Promise<model.MutationResult>;
-  abstract getBy(context: any, clauses: model.Clause[], orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]): Promise<SQL_TYPE>;
-  abstract getPaginatedBy(context: any, clauses: model.Clause[], paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>): Promise<model.Paginated<SQL_TYPE>>;
+  abstract deleteBy(context: any, clauses: model.Clause<keyof SQL_TYPE>[], _: unknown): Promise<model.MutationResult>;
+  abstract getBy(context: any, clauses: model.Clause<keyof SQL_TYPE>[], orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]): Promise<SQL_TYPE>;
+  abstract getPaginatedBy(context: any, clauses: model.Clause<keyof SQL_TYPE>[], paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>): Promise<model.Paginated<SQL_TYPE>>;
   abstract insertBy(context: any, _: unknown, value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
-  abstract updateBy(context: any, clauses: model.Clause[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
+  abstract updateBy(context: any, clauses: model.Clause<keyof SQL_TYPE>[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
 }
 
 export const onnRepoFactory: Record<string, <T extends {}>() => OnnRepo<T>> = {
@@ -97,7 +97,7 @@ __UNSAFE_VALUE_MAPPERS__
   
   async updateBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     value: Partial<model.__SQL_TYPE__>): Promise<model.MutationResult> {
     
 __UNSAFE_CLAUSE_MAPPERS__
@@ -110,7 +110,7 @@ __UNSAFE_VALUE_MAPPERS__
   
   async deleteBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     _: unknown): Promise<model.MutationResult> {
     
 __UNSAFE_CLAUSE_MAPPERS__
@@ -122,7 +122,7 @@ __UNSAFE_CLAUSE_MAPPERS__
   
   async getBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
   ): Promise<model.__SQL_TYPE__> {
@@ -139,7 +139,7 @@ __SAFE_MAPPERS__
 
   async getPaginatedBy(
     context: any,
-    clauses: model.Clause[],
+    clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],

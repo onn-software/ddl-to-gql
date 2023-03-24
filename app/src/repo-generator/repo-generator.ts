@@ -69,15 +69,16 @@ ${remapKeys.map((c) => `      ${c.key}: ${c.sqlKey}`).join(',\n')}
     `;
 
     const unSafeValueMappers = `
-    const anyValue: any = value;
+    const anyValue: any = { ...value };
     const keys = Object.keys(value);
     keys.filter(key => !!${interfaceName}FieldLookUp[key]).forEach(key => {
       anyValue[${interfaceName}FieldLookUp[key]] = anyValue[key]
       delete anyValue[key]
     });
+    value = anyValue;
     `;
     const unSafeOrderMappers = `    if(orderBy?.field) orderBy.field = ${interfaceName}FieldLookUp[orderBy.field] ?? orderBy.field;`;
-    const unSafeClauseMappers = `    clauses = clauses.map(clause => ({...clause, field: ${interfaceName}FieldLookUp[clause.field] ?? clause.field}));`;
+    const unSafeClauseMappers = `    clauses = clauses.map(clause => ({...clause, field: ${interfaceName}FieldLookUp[clause.field] ?? clause.field})) as any;`;
 
     return { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers };
   }
