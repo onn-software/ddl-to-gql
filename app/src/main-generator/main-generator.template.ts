@@ -5,7 +5,7 @@ import {OnnBaseRepo} from './repos';
 export interface GqlParams<GraphQLResolveInfo = any> {
   parent: any;
   args: Record<string, any>;
-  context: OnnContext;
+  context: OnnContext | any;
   info: GraphQLResolveInfo;
 }
 
@@ -14,10 +14,10 @@ export interface OnnResolverWrapper {
   after: <T>(resolverName:string, result: T, gqlParams: GqlParams) => Promise<T>;
 }
 
-export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: OnnContext) => Promise<Knex.QueryBuilder | any>;
+export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: OnnContext | any) => Promise<Knex.QueryBuilder | any>;
 
 export class OnnDdlToGql<GraphQLResolveInfo = any> {
-  constructor(queryBuilderFactory: <T extends {}>(context: OnnContext) => QueryBuilder<T>, options?: { onnWrapperBuilder?: () => OnnResolverWrapper }) {
+  constructor(queryBuilderFactory: <T extends {}>(context: OnnContext | any) => QueryBuilder<T>, options?: { onnWrapperBuilder?: () => OnnResolverWrapper }) {
     OnnBaseRepo.BUILDER_FACTORY = queryBuilderFactory;
     
     if (options?.onnWrapperBuilder) {
@@ -57,7 +57,7 @@ export const knexQueryBuilderFactory =
     knex: Knex,
     onExecute: OnnExecute = contextCachingOnExecute
   ) =>
-  <T extends {}>(context: OnnContext) =>
+  <T extends {}>(context: OnnContext | any) =>
     new KnexQueryBuilder<T>(context, knex, onExecute);
 
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
@@ -73,7 +73,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     where: [],
   };
 
-  constructor(private context: OnnContext, private knex: Knex, private onExecute: OnnExecute) {}
+  constructor(private context: OnnContext | any, private knex: Knex, private onExecute: OnnExecute) {}
 
   private build(): Knex.QueryBuilder<TYPE> {
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;

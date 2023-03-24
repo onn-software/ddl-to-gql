@@ -1,44 +1,42 @@
 export const baseRepo = `import * as model from './model';
 
 export interface OnnRepo<T extends {}> {
-  insertBy(
-    context: model.OnnContext,
-    _: unknown,
-    value: T): Promise<model.MutationResult>;
-  updateBy(
-    context: model.OnnContext,
-    clauses: model.Clause<keyof T>[],
-    value: Partial<T>): Promise<model.MutationResult>;
-  deleteBy(
-    context: model.OnnContext,
-    clauses: model.Clause<keyof T>[],
-    _: unknown): Promise<model.MutationResult>;
-  getBy(
-    context: model.OnnContext,
-    clauses: model.Clause<keyof T>[],
-    orderBy?: { field: string, direction: 'asc' | 'desc' },
-    fields?: string[],
-  ): Promise<T>;
-
-  getPaginatedBy(
-    context: model.OnnContext,
+  insertBy(context: model.OnnContext, _: unknown, value: T): Promise<model.MutationResult>;
+  upsertBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], value: T): Promise<model.MutationResult>;
+  updateBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], value: Partial<T>): Promise<model.MutationResult>;
+  deleteBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], _: unknown): Promise<model.MutationResult>;
+  getBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], orderBy?: { field: string, direction: 'asc' | 'desc' }, fields?: string[]): Promise<T>;
+  getPaginatedBy(context: model.OnnContext,
     clauses: model.Clause<keyof T>[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields?: string[],
     builder?: (qb: model.QueryBuilder<T>) => model.QueryBuilder<T>
   ): Promise<model.Paginated<T>>;
+
+  upsertByEquals(context: model.OnnContext, key: keyof T, keyValue: any, value: T): Promise<model.MutationResult>;
+  updateByEquals(context: model.OnnContext, key: keyof T, keyValue: any, value: Partial<T>): Promise<model.MutationResult>;
+  deleteByEquals(context: model.OnnContext, key: keyof T, keyValue: any, _: unknown): Promise<model.MutationResult>;
+  getByEquals(context: model.OnnContext, key: keyof T, keyValue: any, orderBy?: { field: string, direction: 'asc' | 'desc' }, fields?: string[]): Promise<T>;
+  getPaginatedByEquals(context: model.OnnContext,
+                 key: keyof T, 
+                 keyValue: any,
+                 paginate?: model.Paginate | null,
+                 orderBy?: { field: string, direction: 'asc' | 'desc' },
+                 fields?: string[],
+                 builder?: (qb: model.QueryBuilder<T>) => model.QueryBuilder<T>
+  ): Promise<model.Paginated<T>>;
 }
 
 export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TYPE> {
 
-  static BUILDER_FACTORY: <T extends {}>(context: model.OnnContext) => model.QueryBuilder<T> = (context) => {
+  static BUILDER_FACTORY: <T extends {}>(context: model.OnnContext | any) => model.QueryBuilder<T> = (context) => {
     throw new Error('No BUILDER_FACTORY set')
   };
 
   protected constructor(private tableName: string) {}
 
-  builder = (context: model.OnnContext) => OnnBaseRepo.BUILDER_FACTORY<SQL_TYPE>(context).table(this.tableName);
+  builder = (context: model.OnnContext | any) => OnnBaseRepo.BUILDER_FACTORY<SQL_TYPE>(context).table(this.tableName);
 
   paginate = async (
     qb: model.QueryBuilder<SQL_TYPE>,
@@ -61,11 +59,27 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TY
     };
   };
   
+  abstract insertBy(context: model.OnnContext, _: unknown, value: SQL_TYPE): Promise<model.MutationResult>;
+  abstract updateBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
   abstract deleteBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], _: unknown): Promise<model.MutationResult>;
   abstract getBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]): Promise<SQL_TYPE>;
   abstract getPaginatedBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>): Promise<model.Paginated<SQL_TYPE>>;
-  abstract insertBy(context: model.OnnContext, _: unknown, value: SQL_TYPE): Promise<model.MutationResult>;
-  abstract updateBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
+
+  upsertByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, value: SQL_TYPE) => this.upsertBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],value);
+  updateByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, value: Partial<SQL_TYPE>) => this.updateBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],value);
+  deleteByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any) => this.deleteBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],null);
+  getByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]) => this.getBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],orderBy, fields);
+  getPaginatedByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>) =>
+      this.getPaginatedBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }], paginate, orderBy, fields, builder);
+  
+  async upsertBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: SQL_TYPE): Promise<model.MutationResult> {
+    const current = await this.getBy(context, clauses);
+    if(!current) {
+      return await this.insertBy(context, null, value);
+    }else {
+      return await this.updateBy(context, clauses, value)
+    };
+  }
 }
 
 export const onnRepoFactory: Record<string, <T extends {}>() => OnnRepo<T>> = {
@@ -85,7 +99,7 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   }
   
   async insertBy(
-    context: model.OnnContext,
+    context: model.OnnContext | any,
     _: unknown,
     value: model.__SQL_TYPE__): Promise<model.MutationResult> {
     
@@ -96,7 +110,7 @@ __UNSAFE_VALUE_MAPPERS__
   }
   
   async updateBy(
-    context: model.OnnContext,
+    context: model.OnnContext | any,
     clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     value: Partial<model.__SQL_TYPE__>): Promise<model.MutationResult> {
     
@@ -109,7 +123,7 @@ __UNSAFE_VALUE_MAPPERS__
   }
   
   async deleteBy(
-    context: model.OnnContext,
+    context: model.OnnContext | any,
     clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     _: unknown): Promise<model.MutationResult> {
     
@@ -121,7 +135,7 @@ __UNSAFE_CLAUSE_MAPPERS__
   }
   
   async getBy(
-    context: model.OnnContext,
+    context: model.OnnContext | any,
     clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     orderBy?: { field: string, direction: 'asc' | 'desc' },
     fields: string[] = ['*'],
@@ -138,7 +152,7 @@ __SAFE_MAPPERS__
   }
 
   async getPaginatedBy(
-    context: model.OnnContext,
+    context: model.OnnContext | any,
     clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },

@@ -24,20 +24,6 @@ export class ModelGenerator {
       }
     });
 
-    // if (tableDef.relations.length > 0) {
-    //   typeDef.push('');
-    //   typeDef.push('  // Relations');
-    //
-    //   tableDef.relations.forEach((r) => {
-    //     const type = Globals.getTypescriptName(r.to.table);
-    //     const key = Globals.composeToRelationKey(r);
-    //     if (r.many) {
-    //       typeDef.push(`  ${key}?: Paginated<${type}>;`);
-    //     } else {
-    //       typeDef.push(`  ${key}?: ${type};`);
-    //     }
-    //   });
-    // }
     typeDef.push('}');
     typeDef.push('');
 
