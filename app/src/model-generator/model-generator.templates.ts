@@ -31,11 +31,19 @@ export interface MutationResult {
     error?: string;
 }
 
+export const initialOnnContext = {
+  onn: {
+    skipCache: false,
+    cache: {},
+    extras: {},
+  }
+}
+
 export interface OnnContext {
-  onn?: {
-    skipCache?: boolean
-    cache?: Record<string, any>
-    extras?: Record<string, any>
+  onn: {
+    skipCache: boolean
+    cache: Record<string, any>
+    extras: Record<string, any>
   }
 }
 
