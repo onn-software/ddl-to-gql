@@ -23,6 +23,7 @@ export interface ExecutorOptions {
   gqlPrefix?: string;
   gqlFolder?: string;
   gqlNoRoot?: boolean;
+  gqlNoMutations?: boolean;
   sqlFactory?: string;
   override?: boolean;
 }
@@ -80,7 +81,7 @@ export class Executor {
     }
     if (options.phases.length === 0 || options.phases.indexOf('schema') >= 0) {
       console.log(`Phase: schema`);
-      const res = this.schemaGenerator.execute(tableDefs, options.gqlNoRoot);
+      const res = this.schemaGenerator.execute(tableDefs, options.gqlNoRoot, options.gqlNoMutations);
       fs.writeFileSync(`${options.gqlFolder}/onn-ddl-to-gql.graphql`, res);
     }
     if (options.phases.length === 0 || options.phases.indexOf('main') >= 0) {

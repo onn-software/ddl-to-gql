@@ -3,18 +3,18 @@ import { Globals } from '../globals';
 import { baseGql, GqlTypeMap } from './schema-generator.templates';
 
 export class SchemaGenerator {
-  execute(tableDefs: TableDef[], gqlNoRoot:boolean = false): string {
-    const gqlSchema = tableDefs.map((table) => this.generateGqlSchema(table));
+  execute(tableDefs: TableDef[], gqlNoRoot:boolean = false, gqlNoMutations:boolean = false): string {
+    const gqlSchema = tableDefs.map((table) => this.generateGqlSchema(table, gqlNoMutations));
     const gqlQueries = this.generateGqlSchemaQueries(tableDefs, gqlNoRoot);
-    const gqlMutations = this.generateGqlSchemaMutations(tableDefs, gqlNoRoot);
+    const gqlMutations = gqlNoMutations ? [] : this.generateGqlSchemaMutations(tableDefs, gqlNoRoot);
     return baseGql + gqlSchema.join('\n') + gqlQueries.join('\n') + gqlMutations.join('\n');
   }
 
-  generateGqlSchema(tableDef: TableDef): string {
+  generateGqlSchema(tableDef: TableDef, gqlNoMutations:boolean): string {
     const interfaceName = Globals.getGqlName(tableDef.tableName);
 
     const queryTypes = this.generateQueryTypes(interfaceName, tableDef);
-    const upsertTypes = this.generateUpsertTypes(interfaceName, tableDef);
+    const upsertTypes = gqlNoMutations ? [] : this.generateUpsertTypes(interfaceName, tableDef);
 
 
     return [...queryTypes, ...upsertTypes].join('\n');

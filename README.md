@@ -17,7 +17,7 @@ CREATE TABLE `tableName`
 ```
 
 Based on a valid DDL file a complete Graph is created, respecting the `FOREIGN KEY` relations. 
-A complete GraphQL setup is generated.
+A complete GraphQL setup is generated, for both quering and making mutations.
 
 ```npm
 npx @onn-software/ddl-to-gql --ddlPath ./example.ddl --sqlFactory knex
@@ -92,6 +92,20 @@ More suffixes can be supplied as a comma seperated list.
 
 Another important flag is `heurEnableAll` which is disabled by default. The found relations might not be valid, 
 therefore we encourage the user to inspect the output of the `heurPath` file, or explicitly rely on all heuristics by setting `heurEnableAll`.
+
+### Column name overrides
+
+If you do not control the database, adding foreign key relations is impossible. Based on Heuristics many relations can be recreated, 
+but only if the names of colums in various tables look alike. Overrides makes it easy to rename a column, so that Heuristics can be met.
+In example, suppose you have two tables, `table1` has a field `customerId` and `table2` has `'customer_id'`. 
+With an override we can easily rename `customer_id`, just make sure that the name _exactly_ matches the name in the DDL.
+
+```
+--ddlOverridesPath=./onn/overrides.json
+
+// overrides.json
+{"table1": {"`customer_id`": "customerId"}}
+```
 
 ### Files and Prefixes
 

@@ -50,6 +50,7 @@ program
   )
   .option('--gqlPrefix <text>', 'Optional: Prefix for GQL types.', 'Gql')
   .option('--gqlNoRoot', 'Optional: Make types instead of root query/mutation.', false)
+  .option('--gqlNoMutations', 'Optional: Omit mutations from the schema.', false)
   .option('--sqlFactory <text>', 'Optional: Omit for custom factory, or chose one from: [knex], used in phases [main].')
   .option(
     '--override',
