@@ -2,8 +2,10 @@ import { associateBy } from '../util';
 import { TableColDef, TableDef, TableRelationDef } from '../model';
 import { reservedNames, typeMap } from './ddl-interpreter.templates';
 
+export type Overrides = Record<string, Record<string, string>>
+
 export class DdlInterpreter {
-  execute(ddl: string): TableDef[] {
+  execute(ddl: string, overrides:Overrides): TableDef[] {
     const splittedSchema = ddl.split(/create table /i).slice(1);
 
     const tableDefs = this.createTwoWayRelations(
@@ -12,8 +14,8 @@ export class DdlInterpreter {
         const singleLinesPartial = this.joinMultilineStatementsIntoSingleLine(lines);
         const singleLines = this.splitSingleLineMutipleStatments(singleLinesPartial);
         const { fields, meta } = this.splitIntoFieldsAndMeta(singleLines);
-        const columns = this.parseToColumns(fields);
-        const { primaryKey, relations } = this.parseMeta(tableName, fields, meta);
+        const columns = this.parseToColumns(tableName, fields, overrides);
+        const { primaryKey, relations } = this.parseMeta(tableName, fields, meta, overrides);
 
         const columnMap = associateBy(columns, (f) => f.key);
         if (primaryKey) {
@@ -31,7 +33,7 @@ export class DdlInterpreter {
     return tableDefs;
   }
 
-  private parseToColumns(fields: string[]): TableColDef[] {
+  private parseToColumns(tableName: string,fields: string[], overrides:Overrides): TableColDef[] {
     return fields
       .map((fields) => fields.replaceAll(', ', ','))
       .map((field) => {
@@ -39,10 +41,11 @@ export class DdlInterpreter {
         const parts = field.split(' ').filter((part) => part.trim().length > 0);
         const [sqlKey, sqlType] = parts.map((part) => part.trim());
 
-        const key = this.keyFromSqlKey(sqlKey);
+        const {key, requiresMapping} = this.keyFromSqlKey(tableName, sqlKey, overrides);
+        const override = this.keyOverrite(tableName, key)
         const res: TableColDef = {
           sqlType,
-          sqlKey: key.startsWith('_') ? sqlKey : undefined,
+          sqlKey: requiresMapping ? sqlKey : undefined,
           key,
           unique: upperField.indexOf('PRIMARY KEY') >= 0 || upperField.indexOf('UNIQUE') >= 0,
           type: typeMap[sqlType.split('(')[0].toUpperCase()] ?? 'string',
@@ -52,16 +55,20 @@ export class DdlInterpreter {
       });
   }
 
-  private keyFromSqlKey(sqlKey: string) {
-    let key = sqlKey.replaceAll('`', '');
+  private keyFromSqlKey(tableName: string, sqlKey: string, overrides: Overrides) {
+    const override = overrides[tableName] ? overrides[tableName][sqlKey] : undefined;
+    let key = (override ?? sqlKey).replaceAll('`', '');
+    let requiresMapping = !!override;
     if (
       reservedNames.indexOf(key.toUpperCase()) >= 0 || // reservedName
       !/^[a-zA-Z]/.test(key) || // starts with non-letter
       /[^a-zA-Z0-9_]/.test(key) // contains special chars (non a-z A-Z 0-9 or _)
     ) {
       key = '_' + key.replaceAll(/[^a-zA-Z0-9]/g, '_');
+      requiresMapping = true;
     }
-    return key;
+
+    return {key, requiresMapping};
   }
 
   private extractTableContents(part: string): { tableName: string; lines: string[] } {
@@ -150,7 +157,7 @@ export class DdlInterpreter {
     return { fields, meta };
   }
 
-  private parseMeta(tableName: string, fields: string[], meta: string[]) {
+  private parseMeta(tableName: string, fields: string[], meta: string[], overrides:Overrides) {
     let primaryKey = '';
     const relations: TableRelationDef[] = [];
     meta
@@ -159,7 +166,7 @@ export class DdlInterpreter {
         const upperMeta = met.toUpperCase();
         if (upperMeta.startsWith('PRIMARY KEY (')) {
           const keyJoined = met.substring(met.indexOf('(') + 1, met.indexOf(')'));
-          const keys = keyJoined.split(',').map((k) => this.keyFromSqlKey(k.trim()));
+          const keys = keyJoined.split(',').map((k) => this.keyFromSqlKey(tableName, k.trim(), overrides).key);
           if (keys.length === 1) {
             primaryKey = keys[0];
           }
@@ -169,24 +176,25 @@ export class DdlInterpreter {
         const foreignKeyKeywordIndex = upperMeta.indexOf('FOREIGN KEY');
         if (foreignKeyKeywordIndex >= 0) {
           const relationPart = met.substring(foreignKeyKeywordIndex + 10);
-          const myKey = this.keyFromSqlKey(
-            relationPart.substring(relationPart.indexOf('(') + 1, relationPart.indexOf(')'))
-          );
+          const myKey = this.keyFromSqlKey(tableName,
+            relationPart.substring(relationPart.indexOf('(') + 1, relationPart.indexOf(')')),overrides
+          ).key;
 
           const [foreignName, foreignKeyDirty] = relationPart
             .split(/references/i)[1]
             .trim()
             .split(' ');
-          const foreignKey = this.keyFromSqlKey(
+
+          const foreignTable = foreignName.replaceAll('`', '').replaceAll('.', '__');
+          const foreignKey = this.keyFromSqlKey(foreignTable,
             foreignKeyDirty.substring(
               foreignKeyDirty.indexOf('(') + 1,
               foreignKeyDirty.indexOf(')')
-            )
-          );
-
+            ),overrides
+          ).key;
           relations.push({
             from: { table: tableName, key: myKey },
-            to: { table: foreignName.replaceAll('`', '').replaceAll('.', '__'), key: foreignKey },
+            to: { table: foreignTable, key: foreignKey },
             many: false,
             enabled: true,
             type: 'foreignKey',
@@ -217,5 +225,9 @@ export class DdlInterpreter {
     });
 
     return Object.values(recordTables);
+  }
+
+  private keyOverrite(tableName: string, key: string) {
+
   }
 }

@@ -41,6 +41,7 @@ describe('Executor', () => {
     ).execute({
       phases: [],
       ddlPath: '/Users/hardy/Development/Onn/ddl-to-gql/example/example.ddl',
+      ddlOverridesPath: './overrides.json',
       heurPath: './heuristic.json',
       heurSuffixes: "'id','code','number'",
       heurEnableAll: true,

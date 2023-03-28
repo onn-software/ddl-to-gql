@@ -16,6 +16,7 @@ program
   .description('Convert a SQL DDL to a GraphQL implementation with all relations. See https://www.npmjs.com/package/@onn-software/ddl-to-gql for more details.')
   .version('0.0.1')
   .option('--ddlPath <text>', 'Required for phases [ddl]: Path to ddl file.')
+  .option('--ddlOverridesPath <text>', 'Optional: Path to field name overrides file, used in phases [ddl].')
   .option(
     '--defPath <text>',
     'Optional: Path to interpreted ddl file.',

@@ -1,4 +1,4 @@
-import { DdlInterpreter } from './ddl-interpreter/ddl-interpreter';
+import {DdlInterpreter, Overrides} from './ddl-interpreter/ddl-interpreter';
 import { ModelGenerator } from './model-generator/model-generator';
 import { RepoGenerator } from './repo-generator/repo-generator';
 import { ResolverGenerator } from './resolver-generator/resolver-generator';
@@ -13,6 +13,7 @@ import { HeuristicEngine } from './heuristics/heuristic-engine';
 export interface ExecutorOptions {
   phases: ('ddl' | 'heuristics' | 'model' | 'repo' | 'resolver' | 'schema' | 'main')[];
   defPath: string;
+  ddlOverridesPath?: string;
   heurPath?: string;
   heurSuffixes?: string;
   heurEnableAll?: boolean;
@@ -44,7 +45,10 @@ export class Executor {
 
     if (options.phases.length === 0 || options.phases.indexOf('ddl') >= 0) {
       console.log(`Phase: ddl`);
-      this.executeDdl(options.ddlPath!, options.defPath);
+      const overrides: Overrides =  options.ddlOverridesPath && fs.existsSync(options.ddlOverridesPath)
+          ? JSON.parse(fs.readFileSync(options.ddlOverridesPath, 'utf-8'))
+          : {};
+      this.executeDdl(options.ddlPath!, options.defPath, overrides);
     }
 
     const sourceTableDefs: TableDef[] = JSON.parse(fs.readFileSync(options.defPath, 'utf-8'));
@@ -145,9 +149,9 @@ export class Executor {
     }
   }
 
-  private executeDdl(ddlPath: string, tDefPath: string) {
+  private executeDdl(ddlPath: string, tDefPath: string, overrides: Overrides) {
     const ddl = fs.readFileSync(ddlPath, 'utf-8');
-    const tableDefs = this.ddlInterpreter.execute(ddl);
+    const tableDefs = this.ddlInterpreter.execute(ddl, overrides);
     fs.writeFileSync(tDefPath, JSON.stringify(tableDefs, undefined, 2));
   }
 
