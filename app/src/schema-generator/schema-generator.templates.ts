@@ -39,6 +39,11 @@ input WhereClause {
   stringValues: [String!]
 }
 
+type InsertResult {
+    res: String!
+    error: String
+}
+
 type MutationResult {
     rows: Int!
     error: String

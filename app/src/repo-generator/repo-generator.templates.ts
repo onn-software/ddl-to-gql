@@ -1,7 +1,7 @@
 export const baseRepo = `import * as model from './model';
 
 export interface OnnRepo<T extends {}> {
-  insertBy(context: model.OnnContext, _: unknown, value: T): Promise<model.MutationResult>;
+  insertBy(context: model.OnnContext, _: unknown, value: T): Promise<model.InsertResult>;
   upsertBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], value: T): Promise<model.MutationResult>;
   updateBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], value: Partial<T>): Promise<model.MutationResult>;
   deleteBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], _: unknown): Promise<model.MutationResult>;
@@ -14,6 +14,7 @@ export interface OnnRepo<T extends {}> {
     builder?: (qb: model.QueryBuilder<T>) => model.QueryBuilder<T>
   ): Promise<model.Paginated<T>>;
 
+  insert(context: model.OnnContext, value: T): Promise<model.InsertResult>;
   upsertByEquals(context: model.OnnContext, key: keyof T, keyValue: any, value: T): Promise<model.MutationResult>;
   updateByEquals(context: model.OnnContext, key: keyof T, keyValue: any, value: Partial<T>): Promise<model.MutationResult>;
   deleteByEquals(context: model.OnnContext, key: keyof T, keyValue: any, _: unknown): Promise<model.MutationResult>;
@@ -59,7 +60,7 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TY
     };
   };
   
-  abstract insertBy(context: model.OnnContext, _: unknown, value: SQL_TYPE): Promise<model.MutationResult>;
+  abstract insertBy(context: model.OnnContext, _: unknown, value: SQL_TYPE): Promise<model.InsertResult>;
   abstract updateBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
   abstract deleteBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], _: unknown): Promise<model.MutationResult>;
   abstract getBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]): Promise<SQL_TYPE>;
@@ -75,11 +76,17 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TY
   async upsertBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: SQL_TYPE): Promise<model.MutationResult> {
     const current = await this.getBy(context, clauses);
     if(!current) {
-      return await this.insertBy(context, null, value);
+      const res = await this.insertBy(context, null, value);
+      return {rows: 1};
     }else {
       return await this.updateBy(context, clauses, value)
     };
   }
+  
+  async insert(context: model.OnnContext, value: SQL_TYPE): Promise<model.InsertResult> {
+      return await this.insertBy(context, null, value);
+  }
+  
 }
 
 export const onnRepoFactory: Record<string, <T extends {}>() => OnnRepo<T>> = {
@@ -101,7 +108,7 @@ export class __SQL_TYPE___Repo extends OnnBaseRepo<model.__SQL_TYPE__> {
   async insertBy(
     context: model.OnnContext | any,
     _: unknown,
-    value: model.__SQL_TYPE__): Promise<model.MutationResult> {
+    value: model.__SQL_TYPE__): Promise<model.InsertResult> {
     
 __UNSAFE_VALUE_MAPPERS__
 

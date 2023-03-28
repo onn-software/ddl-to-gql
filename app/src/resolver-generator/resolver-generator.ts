@@ -39,10 +39,11 @@ export class ResolverGenerator {
         mutationResolverEntry
             .replaceAll('__TABLE_NAME__', table.tableName)
             .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(table.tableName))
+            .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(table.tableName))
     );
-    const insertEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'insert'));
-    const updateEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'update'));
-    const deleteEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'delete'));
+    const insertEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'insert').replaceAll('__MUTATION_RESULT_TYPE__', 'InsertResult'));
+    const updateEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'update').replaceAll('__MUTATION_RESULT_TYPE__', 'MutationResult'));
+    const deleteEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'delete').replaceAll('__MUTATION_RESULT_TYPE__', 'MutationResult'));
     const entries = [...insertEntries, ...updateEntries,...deleteEntries]
 
     return mutationResolvers.replaceAll('__MUTATION_ENTRIES__', entries.join('\n'));

@@ -104,7 +104,7 @@ export class SchemaGenerator {
     }
 
     tableDefs.forEach(table => {
-      mutations.push(`  insert_${table.tableName}(value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
+      mutations.push(`  insert_${table.tableName}(value: ${Globals.getGqlName(table.tableName)}_upsert!): InsertResult!`);
       mutations.push(`  update_${table.tableName}(where: [WhereClause!]!, value: ${Globals.getGqlName(table.tableName)}_upsert!): MutationResult!`);
       mutations.push(`  delete_${table.tableName}(where: [WhereClause!]!): MutationResult!`);
     })

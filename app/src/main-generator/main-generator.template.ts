@@ -1,5 +1,5 @@
 export const main = `import {allGqlQueryResolvers, allGqlTypeResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
-import {QueryBuilder, QueryOperator, Clause, MutationResult, OnnContext} from './model';
+import {QueryBuilder, QueryOperator, Clause, InsertResult, MutationResult, OnnContext} from './model';
 import {OnnBaseRepo} from './repos';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
@@ -136,12 +136,12 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     return count[0]['count(*)'] as number;
   }
   
-  async executeInsert(value: any): Promise<MutationResult> {
+  async executeInsert(value: any): Promise<InsertResult> {
     try {
-      const [rows] = await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
-      return {rows, error: rows > 0 ? undefined : 'Nothing matches clauses'}
+      const [res] = await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
+      return {res: \`\${res}\`}
     } catch (e: any) {
-        return {rows: 0, error: e.message ?? e.toString()}
+        return {res: '', error: e.message ?? e.toString()}
     }
   }
   
