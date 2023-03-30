@@ -65,12 +65,14 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     table: string;
     where: Clause[];
     orderBy?: { field: string; direction: 'asc' | 'desc' };
+    distinct: string[];
     limit?: number;
     offset?: number;
     select?: string | string[];
   } = {
     table: '',
     where: [],
+    distinct: [],
   };
 
   constructor(private context: OnnContext | any, private knex: Knex, private onExecute: OnnExecute) {}
@@ -113,6 +115,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     if(this.options.orderBy?.field) {
         qb.orderBy(this.options.orderBy.field, this.options.orderBy.direction);
     }
+    
     return qb;
   }
 
@@ -124,10 +127,12 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     if (this.options.limit) {
       qb.limit(this.options.limit);
     }
-    if (this.options.select) {
+    if(this.options.distinct.length > 0) {
+      qb.distinct(...this.options.distinct).select(...this.options.distinct);
+    } else if (this.options.select) {
       qb.select(this.options.select);
     }
-    
+        
     return this.onExecute(qb, 'QUERY', this.options, this.context);
   }
 
@@ -185,6 +190,11 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
 
   orderBy(orderBy?: {field: string, direction: 'asc' | 'desc'}): QueryBuilder<TYPE, Knex> {
     this.options.orderBy = orderBy;
+    return this;
+  }
+
+  distinct(distinct: string[] = []): QueryBuilder<TYPE, Knex> {
+    this.options.distinct = distinct;
     return this;
   }
 

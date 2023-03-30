@@ -46,7 +46,7 @@ export const paginatedResolverBlock = `
     let result = await wrapper.before<model.Paginated<model.__FOREIGN_SQL_TYPE__>>("__RELATION_NAME__", gqlParams);
     if (!result) {     
       const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}, ...mapClauses(gqlParams.args.where)];
-      result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy(gqlParams.context, clauses, gqlParams.args.paginate, gqlParams.args.orderBy);
+      result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy(gqlParams.context, clauses, gqlParams.args.paginate, gqlParams.args.orderBy, gqlParams.args.distinct);
     }
     return (await wrapper.after("__RELATION_NAME__", result, gqlParams)) as any;
   },
@@ -58,7 +58,7 @@ export const queryResolverEntry = `
     const wrapper = OnnResolverHooks.buildWrapper();
     let result = await wrapper.before<model.Paginated<model.__SQL_TYPE__>>("__TABLE_NAME__", gqlParams);
     if (!result) {     
-      result = await new repo.__SQL_TYPE___Repo().getPaginatedBy(gqlParams.context, mapClauses(gqlParams.args.where), gqlParams.args.paginate, gqlParams.args.orderBy);
+      result = await new repo.__SQL_TYPE___Repo().getPaginatedBy(gqlParams.context, mapClauses(gqlParams.args.where), gqlParams.args.paginate, gqlParams.args.orderBy, gqlParams.args.distinct);
     }
     return (await wrapper.after("__TABLE_NAME__", result, gqlParams)) as any;
   },

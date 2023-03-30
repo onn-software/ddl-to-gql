@@ -60,6 +60,7 @@ export interface QueryBuilder<TYPE extends {}, IMPL = any> {
     executeDelete(): Promise<MutationResult>;
     table(tableName:string): QueryBuilder<TYPE, IMPL>;
     orderBy(orderBy?: { field: string, direction: 'asc' | 'desc' }): QueryBuilder<TYPE, IMPL>;
+    distinct(distinct?: string[]): QueryBuilder<TYPE, IMPL>;
     where(...clause: Clause[]): QueryBuilder<TYPE, IMPL>;
     select(fields: string | string[]): QueryBuilder<TYPE, IMPL>;
     offset(offset: number): QueryBuilder<TYPE, IMPL>;

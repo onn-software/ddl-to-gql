@@ -14,7 +14,7 @@ export class RepoGenerator {
 
     const remapKeys = tableDef.columns.filter((c) => !!c.sqlKey);
 
-    const { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers } = this.buildUnsafeMappers(interfaceName, remapKeys);
+    const { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers, unSafeDistinctMappers } = this.buildUnsafeMappers(interfaceName, remapKeys);
 
     const safeMappers = remapKeys
       .map((c) => {
@@ -46,6 +46,7 @@ export class RepoGenerator {
       .replaceAll('__UNSAFE_LOOKUP__', lookupTable)
       .replaceAll('__UNSAFE_VALUE_MAPPERS__', unSafeValueMappers)
       .replaceAll('__UNSAFE_ORDER_MAPPERS__', unSafeOrderMappers)
+      .replaceAll('__UNSAFE_DISTINCT_MAPPERS__', unSafeDistinctMappers)
       .replaceAll('__UNSAFE_CLAUSE_MAPPERS__', unSafeClauseMappers)
       .replaceAll('__SAFE_MAPPERS__', safeMappers)
       .replaceAll('__SAFE_PAGINATED_MAPPERS__', safePaginatedMappers)
@@ -56,9 +57,9 @@ export class RepoGenerator {
   private buildUnsafeMappers(
     interfaceName: string,
     remapKeys: TableColDef[]
-  ): { lookupTable: string; unSafeValueMappers: string; unSafeOrderMappers: string; unSafeClauseMappers: string } {
+  ): { lookupTable: string; unSafeValueMappers: string; unSafeOrderMappers: string; unSafeClauseMappers: string; unSafeDistinctMappers: string } {
     if (remapKeys.length <= 0) {
-      return { lookupTable: '', unSafeValueMappers: '', unSafeOrderMappers: '', unSafeClauseMappers: '' };
+      return { lookupTable: '', unSafeValueMappers: '', unSafeOrderMappers: '', unSafeClauseMappers: '', unSafeDistinctMappers: '' };
     }
 
     const lookupTable = `
@@ -79,8 +80,9 @@ ${remapKeys.map((c) => `      ${c.key}: ${c.sqlKey}`).join(',\n')}
     `;
     const unSafeOrderMappers = `    if(orderBy?.field) orderBy.field = ${interfaceName}FieldLookUp[orderBy.field] ?? orderBy.field;`;
     const unSafeClauseMappers = `    clauses = clauses.map(clause => ({...clause, field: ${interfaceName}FieldLookUp[clause.field] ?? clause.field})) as any;`;
+    const unSafeDistinctMappers = `    distinct = distinct?.map(entry => ${interfaceName}FieldLookUp[entry] ?? entry);`;
 
-    return { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers };
+    return { lookupTable, unSafeValueMappers, unSafeOrderMappers, unSafeClauseMappers, unSafeDistinctMappers };
   }
 
     private generateFactories(tableDefs: TableDef[]) {

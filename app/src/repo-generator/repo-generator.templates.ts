@@ -10,6 +10,7 @@ export interface OnnRepo<T extends {}> {
     clauses: model.Clause<keyof T>[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
+    distinct?: string[],
     fields?: string[],
     builder?: (qb: model.QueryBuilder<T>) => model.QueryBuilder<T>
   ): Promise<model.Paginated<T>>;
@@ -24,6 +25,7 @@ export interface OnnRepo<T extends {}> {
                  keyValue: any,
                  paginate?: model.Paginate | null,
                  orderBy?: { field: string, direction: 'asc' | 'desc' },
+                 distinct?: string[],
                  fields?: string[],
                  builder?: (qb: model.QueryBuilder<T>) => model.QueryBuilder<T>
   ): Promise<model.Paginated<T>>;
@@ -64,14 +66,14 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TY
   abstract updateBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: Partial<SQL_TYPE>): Promise<model.MutationResult>;
   abstract deleteBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], _: unknown): Promise<model.MutationResult>;
   abstract getBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]): Promise<SQL_TYPE>;
-  abstract getPaginatedBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>): Promise<model.Paginated<SQL_TYPE>>;
+  abstract getPaginatedBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], distinct?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>): Promise<model.Paginated<SQL_TYPE>>;
 
   upsertByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, value: SQL_TYPE) => this.upsertBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],value);
   updateByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, value: Partial<SQL_TYPE>) => this.updateBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],value);
   deleteByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any) => this.deleteBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],null);
   getByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[]) => this.getBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }],orderBy, fields);
-  getPaginatedByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>) =>
-      this.getPaginatedBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }], paginate, orderBy, fields, builder);
+  getPaginatedByEquals = (context: model.OnnContext, key: keyof SQL_TYPE, keyValue: any, paginate?: model.Paginate | null, orderBy?: { field: string; direction: "asc" | "desc" }, distinct?: string[], fields?: string[], builder?: (qb: model.QueryBuilder<SQL_TYPE>) => model.QueryBuilder<SQL_TYPE>) =>
+      this.getPaginatedBy(context, [{ field: key, operator: model.QueryOperator.EQUALS, value: keyValue }], paginate, orderBy, distinct, fields, builder);
   
   async upsertBy(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[], value: SQL_TYPE): Promise<model.MutationResult> {
     const current = await this.getBy(context, clauses);
@@ -145,7 +147,7 @@ __UNSAFE_CLAUSE_MAPPERS__
     context: model.OnnContext | any,
     clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     orderBy?: { field: string, direction: 'asc' | 'desc' },
-    fields: string[] = ['*'],
+    fields: string[] = ['*']
   ): Promise<model.__SQL_TYPE__> {
 __UNSAFE_ORDER_MAPPERS__
     const [res] = await this.builder(context)
@@ -163,12 +165,14 @@ __SAFE_MAPPERS__
     clauses: model.Clause<keyof model.__SQL_TYPE__>[],
     paginate?: model.Paginate | null,
     orderBy?: { field: string, direction: 'asc' | 'desc' },
+    distinct: string[] = [],
     fields: string[] = ['*'],
     builder: (qb: model.QueryBuilder<model.__SQL_TYPE__>) => model.QueryBuilder<model.__SQL_TYPE__> = qb => qb
   ): Promise<model.Paginated<model.__SQL_TYPE__>> {  
 __UNSAFE_ORDER_MAPPERS__
+__UNSAFE_DISTINCT_MAPPERS__
 __UNSAFE_CLAUSE_MAPPERS__
-    const queryBuilder = this.builder(context).where(...clauses);
+    const queryBuilder = this.builder(context).where(...clauses).distinct(distinct);
     const paginated = await this.paginate(builder(queryBuilder), fields, paginate ?? { pageIndex: -1, pageSize: -1 }, orderBy);
 __SAFE_PAGINATED_MAPPERS__
     return paginated;
