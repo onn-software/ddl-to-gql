@@ -86,7 +86,7 @@ export class Executor {
     }
     if (options.phases.length === 0 || options.phases.indexOf('main') >= 0) {
       console.log(`Phase: main`);
-      const res = this.mainGenerator.execute(options.sqlFactory);
+      const res = this.mainGenerator.execute(options.sqlFactory, options.gqlNoRoot);
       fs.writeFileSync(`${options.tsFolder}/index.ts`, res);
     }
     console.log(`Success`);

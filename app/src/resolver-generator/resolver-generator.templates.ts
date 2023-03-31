@@ -4,11 +4,11 @@ import * as repo from './repos';
 
 export class OnnResolverHooks {
   static buildWrapper : () => {
-   before: <T, E = any>(resolverName:string, gqlParams: any) => Promise<T | undefined | null>;
-   after: <T, E = any>(resolverName:string, result: T, gqlParams: any) => Promise<T>;
+   before: <T, E = any>(resolverName:string, tableName :string, gqlParams: any) => Promise<T | undefined | null>;
+   after: <T, E = any>(resolverName:string, tableName :string, result: T, gqlParams: any) => Promise<T>;
  } = () => ({
     before: async () => null,
-    after: async (_,result) => result,
+    after: async (_,__,result) => result,
   });
 }
 
@@ -30,12 +30,12 @@ export const getResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
     let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
     const wrapper = OnnResolverHooks.buildWrapper();
-    let result = await wrapper.before<model.__FOREIGN_SQL_TYPE__>("__RELATION_NAME__", gqlParams);
+    let result = await wrapper.before<model.__FOREIGN_SQL_TYPE__>("__RELATION_NAME__", "__FOREIGN_TABLE_NAME__", gqlParams);
     if (!result) {     
       const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}, ...mapClauses(gqlParams.args.where)];
       result = await new repo.__FOREIGN_SQL_TYPE___Repo().getBy(gqlParams.context, clauses, gqlParams.args.orderBy);
     }
-    return (await wrapper.after("__RELATION_NAME__", result, gqlParams)) as any;
+    return (await wrapper.after("__RELATION_NAME__", "__FOREIGN_TABLE_NAME__", result, gqlParams)) as any;
   },
 `;
 
@@ -43,12 +43,12 @@ export const paginatedResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
     let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
     const wrapper = OnnResolverHooks.buildWrapper();
-    let result = await wrapper.before<model.Paginated<model.__FOREIGN_SQL_TYPE__>>("__RELATION_NAME__", gqlParams);
+    let result = await wrapper.before<model.Paginated<model.__FOREIGN_SQL_TYPE__>>("__RELATION_NAME__", "__FOREIGN_TABLE_NAME__", gqlParams);
     if (!result) {     
       const clauses = [{field: "__SAFE_FOREIGN_FIELD_NAME__", value: gqlParams.parent["__SAFE_FIELD_NAME__"], operator: model.QueryOperator.EQUALS}, ...mapClauses(gqlParams.args.where)];
       result = await new repo.__FOREIGN_SQL_TYPE___Repo().getPaginatedBy(gqlParams.context, clauses, gqlParams.args.paginate, gqlParams.args.orderBy, gqlParams.args.distinct);
     }
-    return (await wrapper.after("__RELATION_NAME__", result, gqlParams)) as any;
+    return (await wrapper.after("__RELATION_NAME__", "__FOREIGN_TABLE_NAME__", result, gqlParams)) as any;
   },
 `;
 
@@ -56,22 +56,22 @@ export const queryResolverEntry = `
   __TABLE_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
     let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
     const wrapper = OnnResolverHooks.buildWrapper();
-    let result = await wrapper.before<model.Paginated<model.__SQL_TYPE__>>("__TABLE_NAME__", gqlParams);
+    let result = await wrapper.before<model.Paginated<model.__SQL_TYPE__>>("__TABLE_NAME__", "__TABLE_NAME__", gqlParams);
     if (!result) {     
       result = await new repo.__SQL_TYPE___Repo().getPaginatedBy(gqlParams.context, mapClauses(gqlParams.args.where), gqlParams.args.paginate, gqlParams.args.orderBy, gqlParams.args.distinct);
     }
-    return (await wrapper.after("__TABLE_NAME__", result, gqlParams)) as any;
+    return (await wrapper.after("__TABLE_NAME__", "__TABLE_NAME__", result, gqlParams)) as any;
   },
  `
 export const mutationResolverEntry = `
   __MUTATION_TYPE_____TABLE_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
     let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
     const wrapper = OnnResolverHooks.buildWrapper();
-    let result = await wrapper.before<model.__MUTATION_RESULT_TYPE__>("__MUTATION_TYPE_____TABLE_NAME__", gqlParams);
+    let result = await wrapper.before<model.__MUTATION_RESULT_TYPE__>("__MUTATION_TYPE_____TABLE_NAME__", "__TABLE_NAME__", gqlParams);
     if (!result) {    
       result = await new repo.__SQL_TYPE___Repo().__MUTATION_TYPE__By(gqlParams.context, mapClauses(gqlParams.args.where), gqlParams.args.value);
     }
-    return (await wrapper.after("__MUTATION_TYPE_____TABLE_NAME__", result, gqlParams)) as any;
+    return (await wrapper.after("__MUTATION_TYPE_____TABLE_NAME__", "__TABLE_NAME__", result, gqlParams)) as any;
   },
  `
 

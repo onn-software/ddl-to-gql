@@ -53,10 +53,10 @@ const main = async () => {
     ...onnDdlToGql.getAllTypeResolvers(),
     Query: {
       version: () => "Dev",
-      onn: async () => ({} as any)
+      onn: onnDdlToGql.getAllQueryResolvers()
     },
     Mutation: {
-      onn: async () => ({} as any)
+      onn: onnDdlToGql.getAllGqlMutationResolvers()
     },
   };
 

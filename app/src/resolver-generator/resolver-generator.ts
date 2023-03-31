@@ -65,6 +65,7 @@ export class ResolverGenerator {
       return paginatedResolverBlock
         .replaceAll('__RELATION_NAME__', Globals.composeToRelationKey(relation))
         .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(tableDef.tableName))
+        .replaceAll('__FOREIGN_TABLE_NAME__', relation.to.table)
         .replaceAll('__FOREIGN_SQL_TYPE__', Globals.getTypescriptName(relation.to.table))
         .replaceAll('__SAFE_FOREIGN_FIELD_NAME__', relation.to.key) // makeFieldNameSafe(relation.to.key)
         .replaceAll('__SAFE_FIELD_NAME__', relation.from.key); // makeFieldNameSafe(relation.from.key)
@@ -75,6 +76,7 @@ export class ResolverGenerator {
       return getResolverBlock
         .replaceAll('__RELATION_NAME__', Globals.composeToRelationKey(relation))
         .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(tableDef.tableName))
+          .replaceAll('__FOREIGN_TABLE_NAME__', relation.to.table)
         .replaceAll('__FOREIGN_SQL_TYPE__', Globals.getTypescriptName(relation.to.table))
         .replaceAll('__SAFE_FOREIGN_FIELD_NAME__', relation.to.key) // makeFieldNameSafe(relation.to.key)
         .replaceAll('__SAFE_FIELD_NAME__', relation.from.key); // makeFieldNameSafe(relation.from.key)

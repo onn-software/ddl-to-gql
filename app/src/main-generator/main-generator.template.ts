@@ -10,8 +10,8 @@ export interface GqlParams<GraphQLResolveInfo = any> {
 }
 
 export interface OnnResolverWrapper {
-  before: (resolverName:string, gqlParams: GqlParams) => Promise<any | undefined | null>;
-  after: (resolverName:string, result: any, gqlParams: GqlParams) => Promise<any>;
+  before: (resolverName:string, tableName :string, gqlParams: GqlParams) => Promise<any | undefined | null>;
+  after: (resolverName:string, tableName :string, result: any, gqlParams: GqlParams) => Promise<any>;
 }
 
 export type OnnExecute = (knexQb: Knex.QueryBuilder, action: string, options: any, context: OnnContext | any) => Promise<Knex.QueryBuilder | any>;
