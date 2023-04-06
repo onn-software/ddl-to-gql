@@ -54,7 +54,7 @@ export class SchemaGenerator {
         const type = Globals.getGqlName(r.to.table);
         if (r.many) {
           const key = Globals.composeToRelationKey(r);
-          schema.push(`  ${key}(paginate: Paginate, orderBy: OrderBy, where: [WhereClause!], distinct: [String!]): Paginated${type}`);
+          schema.push(`  ${key}(paginate: Paginate, orderBy: OrderBy, where: [WhereClause!], distinct: [String!]): Paginated${type}!`);
         } else {
           const key = Globals.composeToRelationKey(r);
           schema.push(`  ${key}: ${type}`);
@@ -85,7 +85,7 @@ export class SchemaGenerator {
     }
 
     tableDefs.forEach(table => {
-      queries.push(`  ${table.tableName}(paginate: Paginate, orderBy: OrderBy, where: [WhereClause!], distinct: [String!]): Paginated${Globals.getGqlName(table.tableName)}`);
+      queries.push(`  ${table.tableName}(paginate: Paginate, orderBy: OrderBy, where: [WhereClause!], distinct: [String!]): Paginated${Globals.getGqlName(table.tableName)}!`);
     })
 
     queries.push('}');
