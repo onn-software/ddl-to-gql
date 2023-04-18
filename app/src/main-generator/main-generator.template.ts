@@ -31,7 +31,7 @@ export class OnnDdlToGql<GraphQLResolveInfo = any> {
 }
 
 export const contextCachingOnExecute: OnnExecute = async (knexQb, action, options, context = {}) => {
-  if(context.onn?.extras?.transacting){
+  if(context?.onn?.extras?.transacting){
     knexQb = knexQb.transacting(context.onn.extras.transacting)
   }
   if(['QUERY', 'COUNT'].indexOf(action) < 0) return knexQb;
@@ -39,12 +39,10 @@ export const contextCachingOnExecute: OnnExecute = async (knexQb, action, option
   if (context.onn.skipCache) return knexQb;
   if (!context.onn.cache) context.onn.cache = {};
   const key = JSON.stringify(options);
-  if (context.onn.cache[key]) {
-    return context.onn.cache[key];
+  if (!context.onn.cache[key]) {
+    context.onn.cache[key] = await knexQb;
   }
-  const value = await knexQb;
-  context.onn.cache[key] = value;
-  return value;
+  return context.onn.cache[key];
 };
 
 __FACTORY__

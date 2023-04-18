@@ -28,7 +28,7 @@ export const __GQL_TYPE___Resolver = {
 
 export const getResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
-    let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
+    let gqlParams = { parent, args, context, info };
     const wrapper = OnnResolverHooks.buildWrapper();
     let result = await wrapper.before<model.__FOREIGN_SQL_TYPE__>("__RELATION_NAME__", "__FOREIGN_TABLE_NAME__", gqlParams);
     if (!result) {     
@@ -41,7 +41,7 @@ export const getResolverBlock = `
 
 export const paginatedResolverBlock = `
   __RELATION_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
-    let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
+    let gqlParams = { parent, args, context, info };
     const wrapper = OnnResolverHooks.buildWrapper();
     let result = await wrapper.before<model.Paginated<model.__FOREIGN_SQL_TYPE__>>("__RELATION_NAME__", "__FOREIGN_TABLE_NAME__", gqlParams);
     if (!result) {     
@@ -54,7 +54,7 @@ export const paginatedResolverBlock = `
 
 export const queryResolverEntry = `
   __TABLE_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
-    let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
+    let gqlParams = { parent, args, context, info };
     const wrapper = OnnResolverHooks.buildWrapper();
     let result = await wrapper.before<model.Paginated<model.__SQL_TYPE__>>("__TABLE_NAME__", "__TABLE_NAME__", gqlParams);
     if (!result) {     
@@ -65,7 +65,7 @@ export const queryResolverEntry = `
  `
 export const mutationResolverEntry = `
   __MUTATION_TYPE_____TABLE_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
-    let gqlParams = { parent, args, context: {...model.initialOnnContext, ...context}, info };
+    let gqlParams = { parent, args, context, info };
     const wrapper = OnnResolverHooks.buildWrapper();
     let result = await wrapper.before<model.__MUTATION_RESULT_TYPE__>("__MUTATION_TYPE_____TABLE_NAME__", "__TABLE_NAME__", gqlParams);
     if (!result) {    

@@ -19,7 +19,7 @@ export class RepoGenerator {
     const safeMappers = remapKeys
       .map((c) => {
         const safeSqlKey = c.sqlKey?.startsWith('`') ? c.sqlKey : `\`${c.sqlKey}\``;
-        return `    res.${c.key} = res[${safeSqlKey}];\n    delete res[${safeSqlKey}]`;
+        return `    res.${c.key} = res[${safeSqlKey}];`;
       })
       .join('\n');
     const safePaginatedMappers =
