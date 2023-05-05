@@ -155,13 +155,17 @@ __UNSAFE_CLAUSE_MAPPERS__
     fields: string[] = ['*']
   ): Promise<model.__SQL_TYPE__> {
 __UNSAFE_ORDER_MAPPERS__
+__UNSAFE_CLAUSE_MAPPERS__
     const [res] = await this.builder(context)
         .select(fields)
         .where(...clauses)
         .orderBy(orderBy)
         .limit(1)
         .executeQuery() as any;
+        
+    if(res) {
 __SAFE_MAPPERS__
+    }
     return res;
   }
 
