@@ -26,14 +26,13 @@ export interface Clause<T = string> {
     value: any;
 }
 
-export interface InsertResult { 
-    res: string;
-    error?: string;
-}
-
 export interface MutationResult { 
     rows: number;
     error?: string;
+}
+
+export interface InsertResult extends MutationResult { 
+    res: string;
 }
 
 export interface OnnContext {

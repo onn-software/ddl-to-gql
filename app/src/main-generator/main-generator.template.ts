@@ -142,9 +142,9 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
   async executeInsert(value: any): Promise<InsertResult> {
     try {
       const [res] = await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
-      return {res: \`\${res}\`}
+      return {rows: res ? 1 : 0, res: \`\${res}\`}
     } catch (e: any) {
-        return {res: '', error: e.message ?? e.toString()}
+        return {rows: 0, res: '', error: e.message ?? e.toString()}
     }
   }
   

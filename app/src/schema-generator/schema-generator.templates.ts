@@ -41,6 +41,7 @@ input WhereClause {
 
 type InsertResult {
     res: String!
+    rows: Int!
     error: String
 }
 

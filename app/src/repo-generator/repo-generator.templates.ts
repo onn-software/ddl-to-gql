@@ -5,6 +5,7 @@ export interface OnnRepo<T extends {}> {
   upsertBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], value: T): Promise<model.MutationResult>;
   updateBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], value: Partial<T>): Promise<model.MutationResult>;
   deleteBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], _: unknown): Promise<model.MutationResult>;
+  delete(context: model.OnnContext, clauses: model.Clause<keyof T>[]): Promise<model.MutationResult>;
   getBy(context: model.OnnContext, clauses: model.Clause<keyof T>[], orderBy?: { field: string, direction: 'asc' | 'desc' }, fields?: string[]): Promise<T>;
   getPaginatedBy(context: model.OnnContext,
     clauses: model.Clause<keyof T>[],
@@ -87,6 +88,10 @@ export abstract class OnnBaseRepo<SQL_TYPE extends {}> implements OnnRepo<SQL_TY
   
   async insert(context: model.OnnContext, value: SQL_TYPE): Promise<model.InsertResult> {
       return await this.insertBy(context, null, value);
+  }
+  
+  async delete(context: model.OnnContext, clauses: model.Clause<keyof SQL_TYPE>[]): Promise<model.MutationResult> {
+      return await this.deleteBy(context, clauses, null);
   }
   
 }
