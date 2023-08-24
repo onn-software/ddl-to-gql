@@ -136,7 +136,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
 
   async executeCount(): Promise<number> {
     const count = await this.onExecute(this.build().count(), 'COUNT', this.options, this.context);
-    return count[0]['count(*)'] as number;
+    return Object.values(count[0])[0] as number;
   }
   
   async executeInsert(value: any): Promise<InsertResult> {
