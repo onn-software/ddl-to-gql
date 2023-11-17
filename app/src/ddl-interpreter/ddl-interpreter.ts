@@ -34,6 +34,10 @@ export class DdlInterpreter {
   }
 
   private parseToColumns(tableName: string,fields: string[], overrides:Overrides): TableColDef[] {
+    if(fields.length === 0) {
+      throw new Error(`Table ${tableName} has no fields`);
+    }
+
     return fields
       .map((fields) => fields.replaceAll(', ', ','))
       .map((field) => {

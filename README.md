@@ -158,3 +158,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+The First Library of Its Kind: `ddl-to-gql` Makes GraphQL for Databases Easy
+
+Creating GraphQL implementations for Databases You Don’t Control Just Got Easier with `ddl-to-gql`

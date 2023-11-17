@@ -173,6 +173,7 @@ export const typeMap: Record<string, string> = {
   INT: 'number',
   BIGINT: 'number',
   DECIMAL: 'number',
+  DOUBLE: 'number',
   NUMERIC: 'number',
   FLOAT: 'number',
   REAL: 'number',

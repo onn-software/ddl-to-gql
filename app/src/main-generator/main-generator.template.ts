@@ -1,5 +1,5 @@
 export const main = `import {allGqlQueryResolvers, allGqlTypeResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
-import {QueryBuilder, QueryOperator, Clause, InsertResult, MutationResult, OnnContext} from './model';
+import {QueryBuilder, QueryOperator, Clause, InsertResult, MutationResult, OnnContext, MemCache} from './model';
 import {OnnBaseRepo} from './repos';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
@@ -30,6 +30,10 @@ export class OnnDdlToGql<GraphQLResolveInfo = any> {
   getAllGqlMutationResolvers = () => allGqlMutationResolvers;
 }
 
+export const SimpleOnExecute: OnnExecute = async (knexQb, action, options, context = {}) => {
+    return knexQb;
+}
+
 export const contextCachingOnExecute: OnnExecute = async (knexQb, action, options, context = {}) => {
   if(context?.onn?.extras?.transacting){
     knexQb = knexQb.transacting(context.onn.extras.transacting)
@@ -37,18 +41,32 @@ export const contextCachingOnExecute: OnnExecute = async (knexQb, action, option
   if(['QUERY', 'COUNT'].indexOf(action) < 0) return knexQb;
   if (!context.onn) context.onn = {};
   if (context.onn.skipCache) return knexQb;
-  if (!context.onn.cache) context.onn.cache = {};
-  const key = JSON.stringify(options);
-  if (!context.onn.cache[key]) {
-    context.onn.cache[key] = await knexQb;
+  if (!context.onn.cache) {
+      context.onn.cache = new MemCache();
+  }  
+    
+  let res = await context.onn.cache.get(options);
+  if (!res) {
+      res = await knexQb;
+      await context.onn.cache.set(options, res);
   }
-  return context.onn.cache[key];
+  return res;
 };
 
 __FACTORY__
 `
 
 export const knexFactrory = `import { Knex } from 'knex';
+
+export interface KnexQueryBuilderOptions {
+    table: string;
+    where: Clause[];
+    orderBy?: { field: string; direction: 'asc' | 'desc' };
+    distinct: string[];
+    limit?: number;
+    offset?: number;
+    select?: string | string[];
+}
 
 export const knexQueryBuilderFactory =
   (
@@ -59,15 +77,7 @@ export const knexQueryBuilderFactory =
     new KnexQueryBuilder<T>(context, knex, onExecute);
 
 export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Knex> {
-  private options: {
-    table: string;
-    where: Clause[];
-    orderBy?: { field: string; direction: 'asc' | 'desc' };
-    distinct: string[];
-    limit?: number;
-    offset?: number;
-    select?: string | string[];
-  } = {
+  private options: KnexQueryBuilderOptions = {
     table: '',
     where: [],
     distinct: [],

@@ -18,12 +18,14 @@ const main = async () => {
 
   const config: Knex.Config = {
     client: "mysql2",
+
     connection: {
       host: "localhost",
       port: 3306,
       user: "root",
       password: "example",
       database: "classicmodels",
+      charset: 'utf8_bin',
     },
   };
 

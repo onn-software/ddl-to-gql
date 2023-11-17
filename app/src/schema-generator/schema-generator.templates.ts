@@ -60,6 +60,7 @@ export const GqlTypeMap: Record<string, string> = {
     INT: 'Int',
     BIGINT: 'Int',
     DECIMAL: 'Float',
+    DOUBLE: 'Float',
     NUMERIC: 'Float',
     FLOAT: 'Float',
     REAL: 'Float',

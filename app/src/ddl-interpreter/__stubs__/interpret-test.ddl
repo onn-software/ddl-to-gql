@@ -11,11 +11,13 @@ USE `classicmodels`;
 DROP TABLE IF EXISTS `customers`;
 CREATE TABLE `customers`
 (
+    `id`         int         NOT NULL,
     `customerNumber`         int         NOT NULL,
     `customerName`           varchar(50) NOT NULL,
     `contactLastName`        varchar(50) NOT NULL,
     `contactFirstName`       varchar(50) NOT NULL,
     `phone`                  varchar(50) NOT NULL,
+    `machine_configuration_id` bigint DEFAULT NULL,
     `addressLine1`           varchar(50) NOT NULL,
     `addressLine2`           varchar(50)    DEFAULT NULL,
     `city`                   varchar(50) NOT NULL,
@@ -34,6 +36,7 @@ CREATE TABLE `customers`
 DROP TABLE IF EXISTS `employees`;
 CREATE TABLE `employees`
 (
+    `customerId`         int         NOT NULL,
     `employeeNumber` int          NOT NULL,
     `lastName`       varchar(50)  NOT NULL,
     `firstName`      varchar(50)  NOT NULL,

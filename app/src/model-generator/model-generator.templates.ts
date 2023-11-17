@@ -35,11 +35,24 @@ export interface InsertResult extends MutationResult {
     res: string;
 }
 
+export interface OnnCache {
+    get: <T>(options:any) => Promise<T | undefined>;
+    set: <T>(options:any, value: T) => Promise<T | unknown>;
+    del: (options:any) => Promise<void | undefined>;
+}
+
+export class MemCache implements OnnCache {
+    cache: Record<string, any> = {};
+    get = async <T>(options:any) => this.cache[JSON.stringify(options)] as T;
+    set = async <T>(options:any, value: T) => this.cache[JSON.stringify(options)] = value;
+    del = async (options:any) => this.set(options, undefined);
+}
+
 export interface OnnContext {
   onn?: {
-    skipCache?: boolean
-    cache?: Record<string, any>
-    extras?: Record<string, any>
+    skipCache?: boolean;
+    cache?: OnnCache;
+    extras?: Record<string, any>;
   }
 }
 
