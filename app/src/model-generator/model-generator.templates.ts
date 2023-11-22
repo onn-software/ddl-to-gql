@@ -28,11 +28,8 @@ export interface Clause<T = string> {
 
 export interface MutationResult { 
     rows: number;
-    error?: string;
-}
-
-export interface InsertResult extends MutationResult { 
     res: string;
+    error?: string;
 }
 
 export interface OnnCache {
@@ -59,7 +56,7 @@ export interface OnnContext {
 export interface QueryBuilder<TYPE extends {}, IMPL = any> {
     executeQuery(): Promise<TYPE[]>;
     executeCount(): Promise<number>;
-    executeInsert(value: Partial<TYPE>): Promise<InsertResult>;
+    executeInsert(value: Partial<TYPE>): Promise<MutationResult>;
     executeUpdate(value: Partial<TYPE>): Promise<MutationResult>;
     executeDelete(): Promise<MutationResult>;
     table(tableName:string): QueryBuilder<TYPE, IMPL>;

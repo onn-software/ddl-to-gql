@@ -1,5 +1,5 @@
 export const main = `import {allGqlQueryResolvers, allGqlTypeResolvers, allGqlMutationResolvers, OnnResolverHooks} from './resolvers';
-import {QueryBuilder, QueryOperator, Clause, InsertResult, MutationResult, OnnContext, MemCache} from './model';
+import {QueryBuilder, QueryOperator, Clause, MutationResult, OnnContext, MemCache} from './model';
 import {OnnBaseRepo} from './repos';
 
 export interface GqlParams<GraphQLResolveInfo = any> {
@@ -149,7 +149,7 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     return Object.values(count[0])[0] as number;
   }
   
-  async executeInsert(value: any): Promise<InsertResult> {
+  async executeInsert(value: any): Promise<MutationResult> {
     try {
       const [res] = await this.onExecute(this.build().insert(value), 'INSERT', this.options, this.context);
       return {rows: res ? 1 : 0, res: \`\${res}\`}
@@ -161,18 +161,18 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
   async executeUpdate(value: any): Promise<MutationResult> {
     try {
       const rows = await this.onExecute(this.build().update(value), 'UPDATE', this.options, this.context);
-      return {rows, error: rows > 0 ? undefined : 'Nothing matches clauses'}
+      return {rows, res: '', error: rows > 0 ? undefined : 'Nothing matches clauses'}
     } catch (e: any) {
-        return {rows: 0, error: e.message ?? e.toString()}
+        return {rows: 0, res: '', error: e.message ?? e.toString()}
     }
   }
   
   async executeDelete(): Promise<MutationResult> {
     try {
       const rows = await this.onExecute(this.build().delete(), 'DELETE', this.options, this.context);
-      return {rows, error: rows > 0 ? undefined : 'Nothing matches clauses'}
+      return {rows, res: '', error: rows > 0 ? undefined : 'Nothing matches clauses'}
     } catch (e: any) {
-        return {rows: 0, error: e.message ?? e.toString()}
+        return {rows: 0, res: '', error: e.message ?? e.toString()}
     }
   }
 

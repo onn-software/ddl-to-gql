@@ -14,7 +14,7 @@ Run in the root folder (that's one folder up from here): `npm install`.
 All following commands are executed in the folder `./example`.
 - Run `docker compose up`.
 - Using your favorite SQL tool, run the `mysqlsampledatabase.sql`.
-- Verify the data is present with [Adminer](http://localhost:8080/?server=db&username=root&db=classicmodels).
+- Verify the data is present with [Adminer](http://localhost:8080/?server=db&username=root&db=classicmodels) (password 'example'.
 
 ## Generate code, and run the app
 Now that the environment is ready, let's generate code, and run the example.

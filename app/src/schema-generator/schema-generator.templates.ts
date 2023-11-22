@@ -10,6 +10,13 @@ enum OrderDirection {
   desc
 }
 
+enum MutationAction {
+  insert
+  upsert
+  update
+  delete
+}
+
 input OrderBy {
   field: String!,
   direction: OrderDirection!,
@@ -39,13 +46,8 @@ input WhereClause {
   stringValues: [String!]
 }
 
-type InsertResult {
-    res: String!
-    rows: Int!
-    error: String
-}
-
 type MutationResult {
+    res: String!
     rows: Int!
     error: String
 }

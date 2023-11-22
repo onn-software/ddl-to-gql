@@ -41,10 +41,12 @@ export class ResolverGenerator {
             .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(table.tableName))
             .replaceAll('__SQL_TYPE__', Globals.getTypescriptName(table.tableName))
     );
-    const insertEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'insert').replaceAll('__MUTATION_RESULT_TYPE__', 'InsertResult'));
-    const updateEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'update').replaceAll('__MUTATION_RESULT_TYPE__', 'MutationResult'));
-    const deleteEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'delete').replaceAll('__MUTATION_RESULT_TYPE__', 'MutationResult'));
-    const entries = [...insertEntries, ...updateEntries,...deleteEntries]
+
+    const insertEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'insert').replaceAll('__MUTATION_METHOD__', "'insertBy'"));
+    const updateEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'update').replaceAll('__MUTATION_METHOD__', "'updateBy'"));
+    const deleteEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'delete').replaceAll('__MUTATION_METHOD__', "'deleteBy'"));
+    const actionEntries = untypedEntries.map(e => e.replaceAll('__MUTATION_TYPE__', 'action').replaceAll('__MUTATION_METHOD__', '`${gqlParams.args.action}By`'));
+    const entries = [...insertEntries, ...updateEntries,...deleteEntries, ...actionEntries]
 
     return mutationResolvers.replaceAll('__MUTATION_ENTRIES__', entries.join('\n'));
   }

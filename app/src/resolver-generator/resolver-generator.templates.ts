@@ -67,9 +67,9 @@ export const mutationResolverEntry = `
   __MUTATION_TYPE_____TABLE_NAME__: async (parent: any, args: any, context: model.OnnContext | any, info: any) => {
     let gqlParams = { parent, args, context, info };
     const wrapper = OnnResolverHooks.buildWrapper();
-    let result = await wrapper.before<model.__MUTATION_RESULT_TYPE__>("__MUTATION_TYPE_____TABLE_NAME__", "__TABLE_NAME__", gqlParams);
-    if (!result) {    
-      result = await new repo.__SQL_TYPE___Repo().__MUTATION_TYPE__By(gqlParams.context, mapClauses(gqlParams.args.where), gqlParams.args.value);
+    let result = await wrapper.before<model.MutationResult>("__MUTATION_TYPE_____TABLE_NAME__", "__TABLE_NAME__", gqlParams);
+    if (!result) {
+      result = await (new repo.__SQL_TYPE___Repo() as any)[__MUTATION_METHOD__](gqlParams.context, mapClauses(gqlParams.args.where), gqlParams.args.value);
     }
     return (await wrapper.after("__MUTATION_TYPE_____TABLE_NAME__", "__TABLE_NAME__", result, gqlParams)) as any;
   },
