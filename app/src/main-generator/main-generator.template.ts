@@ -89,39 +89,40 @@ export class KnexQueryBuilder<TYPE extends {}> implements QueryBuilder<TYPE, Kne
     let qb = this.knex<TYPE>(this.options.table) as Knex.QueryBuilder<TYPE>;
     
     this.options.where.forEach((clause) => {
+      const safeField = this.options.table + "." + clause.field;
       switch (clause.operator) {
         case QueryOperator.EQUALS:
-          qb.where(clause.field, clause.value);
+          qb.where(safeField, clause.value);
           break;
         case QueryOperator.IN:
-          qb.whereIn(clause.field, clause.value);
+          qb.whereIn(safeField, clause.value);
           break;
         case QueryOperator.BETWEEN:
-          qb.whereBetween(clause.field, clause.value);
+          qb.whereBetween(safeField, clause.value);
           break;
         case QueryOperator.LIKE:
-          qb.whereLike(clause.field, clause.value);
+          qb.whereLike(safeField, clause.value);
           break;
         case QueryOperator.NULL:
-          qb.whereNull(clause.field);
+          qb.whereNull(safeField);
           break;
         case QueryOperator.NOT_EQUALS:
-          qb.whereNot(clause.field, clause.value);
+          qb.whereNot(safeField, clause.value);
           break;
         case QueryOperator.NOT_IN:
-          qb.whereNotIn(clause.field, clause.value);
+          qb.whereNotIn(safeField, clause.value);
           break;
         case QueryOperator.NOT_BETWEEN:
-          qb.whereNotBetween(clause.field, clause.value);
+          qb.whereNotBetween(safeField, clause.value);
           break;
         case QueryOperator.NOT_NULL:
-          qb.whereNotNull(clause.field);
+          qb.whereNotNull(safeField);
           break;
       }
     });
     
     if(this.options.orderBy?.field) {
-        qb.orderBy(this.options.orderBy.field, this.options.orderBy.direction);
+        qb.orderBy(this.options.table + "." + this.options.orderBy.field, this.options.orderBy.direction);
     }
     
     return qb;
